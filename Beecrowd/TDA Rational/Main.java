@@ -21,13 +21,8 @@ public class Main {
         for (int i = 0; i <a;i++) {
             
             input=sc2.nextLine();
-            if(input.equals("")&&input.length()<6)break;
-            char operation=input.charAt(6);
             String[] numbers=input.split(" ");
-            if (numbers.length < 7) {
-                break; // Se não houver números suficientes, pare o loop
-            }
-
+            char operation=(numbers[3].charAt(0));
             N1=Integer.parseInt(numbers[0]);
             D1=Integer.parseInt(numbers[2]);
             N2=Integer.parseInt(numbers[4]);
