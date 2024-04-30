@@ -21,8 +21,13 @@ public class Main {
         for (int i = 0; i <a;i++) {
             
             input=sc2.nextLine();
+            if(input.equals("")&&input.length()<6)break;
             char operation=input.charAt(6);
             String[] numbers=input.split(" ");
+            if (numbers.length < 7) {
+                break; // Se não houver números suficientes, pare o loop
+            }
+
             N1=Integer.parseInt(numbers[0]);
             D1=Integer.parseInt(numbers[2]);
             N2=Integer.parseInt(numbers[4]);
@@ -46,8 +51,8 @@ public class Main {
                 break;
 
                 case '/':
-                resp1=N1/N2;
-                resp2=D1/D2;
+                resp1=N1*D2;
+                resp2=N2*D1;
                 break;
 
                 default:
@@ -80,7 +85,7 @@ public class Main {
             resp3/=maior;
             resp4/=maior;
             
-
+            if(resp4 <0 && resp3>0){resp4*=-1;resp3*=-1;}
             System.out.println(resp1+"/"+resp2+" = "+resp3+"/"+resp4);
         }
         sc.close();
