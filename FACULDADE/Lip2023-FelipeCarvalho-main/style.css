@@ -1,0 +1,100 @@
+ootstrap.css
+bootstrap.min.css
+bootstrap.rtl.css
+bootstrap.rtl.min.css
+bootstrap-grid.css
+bootstrap-grid.rtl.css
+bootstrap-grid.min.css
+bootstrap-grid.rtl.min.css
+html {
+  height: 100%;
+  width: 100%;
+}
+
+.navbar-nav .nav-link {
+  border: 1px solid white;
+  border-radius: 5px;
+  margin-right: 10px;
+  padding: 5px 10px;
+}
+.navbar-nav .nav-link:hover {
+    color: #2596be !important;
+  }
+
+  .navbar-nav .active>.nav-link {
+    color: #2596be !important;
+  }
+.card {
+    border: 1px solid #ccc;
+    border-radius: 10px;
+  }
+  
+  .card-body {
+    background-color: white;
+  }
+  
+  .embed-responsive {
+    min-height: 300px;
+  }
+  
+  .embed-responsive iframe {
+    width: 100%;
+    height: 100%;
+  }
+.carousel-item-visible {
+  position: relative;
+  opacity: 1;
+}
+.carousel-item-next.carousel-item-left,
+.carousel
+.carousel-caption {
+  text-align: center;
+}
+
+
+#div-jogo {
+  margin-top: 10px;
+}
+
+.jogo-aberto #jogar-btn {
+  display: none;
+}
+
+.carousel-caption {
+border-radius: 20px;
+background-color: rgba(0, 0, 0, 0.3);
+}
+
+
+
+@import "root";
+@import "reboot";
+@import "type";
+@import "images";
+@import "containers";
+@import "grid";
+@import "tables";
+@import "forms";
+@import "buttons";
+@import "transitions";
+@import "dropdown";
+@import "button-group";
+@import "nav";
+@import "navbar";
+@import "card";
+@import "accordion";
+@import "breadcrumb";
+@import "pagination";
+@import "badge";
+@import "alert";
+@import "progress";
+@import "list-group";
+@import "close";
+@import "toasts";
+@import "modal";
+@import "tooltip";
+@import "popover";
+@import "carousel";
+@import "spinners";
+@import "offcanvas";
+@import "placeholders";

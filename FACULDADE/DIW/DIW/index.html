@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Felipe Carvalho de Paula Silva</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <nav class="navbar navbar-expand-md navbar-light bg-light">
+  <a class="navbar-brand" href="#">Felipe Carvalho de Paula Silva / DIW(3567102) / Matricula: 00808586</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="#">Home</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Sobre</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Contato</a>
+      </li>
+      <li class="nav-item">
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<header>
+  <img src="Imagens\eCommerce-1.png" class="rounded mx-auto d-block img-fluid" alt="Logo do Portal">
+  <form id="searchForm">
+    <input type="text" id="searchInput" placeholder="Pesquisar...">
+    <button type="submit">Buscar</button>
+  </form>
+</header>
+
+<!-- Modal de sugestão -->
+<div class="modal fade" id="suggestionModal" tabindex="-1" role="dialog" aria-labelledby="suggestionModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="suggestionModalLabel">Sugestão</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>O nome do produto deve ser inserido completo e sem erros.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+
+  let modalShown = false;
+
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('focus', () => {
+    if (!modalShown) {
+      $('#suggestionModal').modal('show');
+      modalShown = true;
+    }
+  });
+</script>
+
+
+
+<script>
+  // Função para redirecionar para a página de informações do produto com base no nome pesquisado
+  function searchProducts(event) {
+    event.preventDefault(); 
+
+    const searchInput = document.getElementById('searchInput');
+    const productName = searchInput.value.trim(); 
+
+    if (productName !== '') {
+      
+      fetch('https://fakestoreapi.com/products')
+        .then(response => response.json())
+        .then(data => {
+          const matchedProduct = data.find(product => product.title.toLowerCase() === productName.toLowerCase());
+
+          if (matchedProduct) {
+            const productId = matchedProduct.id;
+            // Redireciona para a página de detalhes do produto com base no ID obtido
+            window.location.href = `info.html?id=${productId}`;
+          } else {
+            alert('Produto não encontrado.');
+          }
+        })
+        .catch(error => {
+          console.error('Ocorreu um erro ao pesquisar o produto:', error);
+        });
+    }
+  }
+
+  
+  const searchForm = document.getElementById('searchForm');
+  searchForm.addEventListener('submit', searchProducts);
+</script>
+
+
+
+
+	<main>
+  <section id="carousel-section" class="pt-5">
+    <h2>Destaque:</h2>
+  </section>
+  <section>
+    <div id="myCarousel" class="carousel slide" data-ride="carousel">
+      <div class="carousel-inner">
+        
+      </div>
+      <a class="carousel-control-prev" href="#myCarousel" role="button" data-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="sr-only">Anterior</span>
+      </a>
+      <a class="carousel-control-next" href="#myCarousel" role="button" data-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="sr-only">Próximo</span>
+      </a>
+    </div>
+  </section>
+</main>
+
+<style>
+  .carousel-caption {
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 10px;
+    position: absolute;
+    bottom: 50%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+    width: 100%;
+    text-align: center;
+  }
+
+  .carousel-inner .carousel-item img {
+    object-fit: contain;
+    width: 400px;
+    height: 400px;
+  }
+
+  
+  .carousel-indicators {
+    display: none;
+  }
+</style>
+
+
+<script>
+
+  fetch('https://fakestoreapi.com/products')
+    .then(response => response.json())
+    .then(data => {
+      // Criar os elementos do carrossel com base nos dados obtidos da API
+      const carouselInner = document.querySelector('.carousel-inner');
+
+      data.forEach((product, index) => {
+        const carouselItem = document.createElement('div');
+        carouselItem.classList.add('carousel-item');
+        if (index === 0) {
+          carouselItem.classList.add('active');
+        }
+
+        const imageLink = document.createElement('a');
+        imageLink.href = `info.html?id=${product.id}`;
+
+        const image = document.createElement('img');
+        image.src = product.image;
+        image.alt = product.title;
+        image.classList.add('d-block', 'w-100', 'carousel-image');
+
+        const caption = document.createElement('div');
+        caption.classList.add('carousel-caption');
+        caption.textContent = product.title;
+
+        imageLink.appendChild(image);
+        carouselItem.appendChild(imageLink);
+        carouselItem.appendChild(caption);
+        carouselInner.appendChild(carouselItem);
+      });
+
+      // Atualizar os indicadores do carrossel
+      const carouselIndicators = document.querySelector('.carousel-indicators');
+
+      data.forEach((_, index) => {
+        const indicator = document.createElement('li');
+        indicator.setAttribute('data-target', '#myCarousel');
+        indicator.setAttribute('data-slide-to', index);
+        if (index === 0) {
+          indicator.classList.add('active');
+        }
+        carouselIndicators.appendChild(indicator);
+      });
+    })
+    .catch(error => {
+      console.error('Ocorreu um erro ao carregar os dados do API:', error);
+    });
+</script>
+
+
+<style>
+  .product-image {
+    width: 200px;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+</style>
+
+
+<style>
+  .filter-container {
+    margin-bottom: 20px;
+  }
+
+  .filter-container label {
+    margin-right: 10px;
+  }
+
+   .container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; 
+    align-items: center; 
+  }
+
+  .card {
+    width: 200px;
+    height: 300px;
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+     overflow: hidden;
+  }
+
+  .card .card-img-top {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 5px;
+  }
+
+  .card .card-title {
+    font-size: 16px;
+    margin-top: 10px;
+    margin-bottom: 5px;
+  }
+
+  .card .card-category {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 5px;
+  }
+
+  .card .card-text {
+    font-size: 13px;
+    color: #555;
+  }
+    .container-scrollable {
+    max-height: 600px;
+    overflow-y: scroll;
+  }
+  .container-scrollable::-webkit-scrollbar {
+  width: 8px; 
+}
+
+.container-scrollable::-webkit-scrollbar-thumb {
+  background-color: #888; 
+  border-radius: 4px; 
+}
+
+.container-scrollable::-webkit-scrollbar-track {
+  background-color: #f2f2f2; 
+  border-radius: 4px; 
+}
+</style>
+
+<section>
+  
+
+  <section>
+  <div class="filter-container">
+    <label for="categoryFilter">Filtrar por Categoria:</label>
+    <select id="categoryFilter">
+      <option value="all">Todas</option>
+      <option value="electronics">Eletrônicos</option>
+      <option value="jewelery">Jóias</option>
+      <option value="men's clothing">Roupas Masculinas</option>
+      <option value="women's clothing">Roupas Femininas</option>
+    </select>
+  </div>
+
+  <h2 class="m-2 p-2">Produtos:</h2>
+  <div id="productsContainer" class="container container-scrollable"></div>
+</section>
+
+<script>
+  let originalData = []; 
+
+  // Função para buscar dados da API
+  function fetchProducts() {
+    fetch('https://fakestoreapi.com/products')
+      .then(response => response.json())
+      .then(data => {
+        originalData = data; 
+        displayProducts(originalData); 
+      })
+      .catch(error => console.log(error));
+  }
+
+  // Função para exibir os produtos
+  function displayProducts(products) {
+    const productsContainer = document.getElementById('productsContainer');
+    productsContainer.innerHTML = ''; 
+
+    products.forEach(product => {
+      // Cria elementos HTML para cada produto
+      const card = document.createElement('div');
+      card.classList.add('card');
+
+      const imageLink = document.createElement('a');
+      imageLink.href = `info.html?id=${product.id}`;
+
+      const image = document.createElement('img');
+      image.classList.add('card-img-top', 'product-image');
+      image.src = product.image;
+      image.alt = product.title;
+
+      image.addEventListener('click', () => {
+        window.location.href = `info.html?id=${product.id}`;
+      });
+
+      imageLink.appendChild(image);
+      card.appendChild(imageLink);
+
+      const cardBody = document.createElement('div');
+      cardBody.classList.add('card-body');
+
+      const title = document.createElement('h5');
+      title.classList.add('card-title');
+      title.textContent = product.title;
+
+      const category = document.createElement('div');
+      category.classList.add('card-category');
+      category.textContent = product.category;
+
+      const description = document.createElement('p');
+      description.classList.add('card-text');
+      description.textContent = product.description;
+
+    
+      cardBody.appendChild(title);
+      cardBody.appendChild(category);
+      cardBody.appendChild(description);
+      card.appendChild(cardBody);
+      productsContainer.appendChild(card);
+    });
+  }
+
+ 
+  const categoryFilter = document.getElementById('categoryFilter');
+  categoryFilter.addEventListener('change', () => {
+    const selectedCategory = categoryFilter.value;
+    if (selectedCategory === 'all') {
+      // Exibe todos os produtos
+      displayProducts(originalData);
+    } else {
+      // Filtra os produtos pela categoria selecionada
+      const filteredProducts = originalData.filter(product => product.category === selectedCategory);
+      displayProducts(filteredProducts);
+    }
+  });
+
+  // Chama a função para buscar os produtos
+  fetchProducts();
+</script>
+
+    
+		<section>
+			<h2 class="p-1">Newsletter</h2>
+			<p class="m-2">Assine nossa newsletter para receber as últimas novidades.</p>
+			<form>
+				<input type="email" placeholder="Digite seu e-mail...">
+				<button type="submit">Assinar</button>
+			</form>
+		</section>
+	</main>
+    <footer id="footer">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-4">
+              <h3>Métodos de pagamento</h3>
+              <img src="Imagens\pngwing.com (1).png"width="60px" alt="Cartões de crédito aceitos">
+              <img src="Imagens\pngwing.com.png"width="60px" alt="Cartões de crédito aceitos">
+              <img src="Imagens\image-19.webp"width="60px" alt="Cartões de crédito aceitos">
+            </div>
+            <div class="col-md-4">
+              <h3>Redes sociais</h3>
+              <ul>
+                <li><a href="https://www.facebook.com/" target="_blank"><i class="fab fa-facebook-f"></i>
+                <img src="Imagens\facebook-512.webp"width=40px alt=""></a></li>
+                <li><a href="https://twitter.com/" target="_blank"><i class="fab fa-twitter"></i>
+                <img src="Imagens\124021.png"width="40px" alt=""></a></li>
+                <li><a href="https://www.instagram.com/" target="_blank"><i class="fab fa-instagram"></i>
+                <img src="Imagens\2048px-Instagram_icon.png"width="40px" alt=""></a></li>
+              </ul>
+            </div>
+            <div class="col-md-4">
+              <h3>Contato</h3>
+              <p>Endereço: Rua Exemplo, 123 - Bairro Exemplo</p>
+              <p>Telefone: (31)1234-5678</p>
+              <p>Email: contato@gmail.com</p>
+            </div>
+          </div>
+        </div>
+      </footer>
+</body>
+</html>
