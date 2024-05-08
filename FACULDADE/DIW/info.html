@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Detalhes do Produto</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    .product-image {
+      max-width: 300px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+ <style>
+  .container {
+    text-align: center;
+  }
+
+  h1 {
+    margin-top: 50px;
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  #productDetailsContainer {
+    margin-top: 20px;
+    text-align: left;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 20px;
+    background-color: #f9f9f9;
+  }
+
+  .btn {
+    margin-top: 20px;
+  }
+</style>
+
+<body>
+  <div class="container">
+    <h1 class="mt-5">Detalhes do Produto</h1>
+
+    <div id="productDetailsContainer" class="my-4">
+      
+    </div>
+
+    <a href="index.html" class="btn btn-primary">Voltar</a>
+  </div>
+</body>
+  
+
+  <script>
+    // Função para obter o ID do produto a partir da URL
+    function getProductIdFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('id');
+    }
+
+    // Função para buscar detalhes do produto com base no ID
+    function fetchProductDetails(productId) {
+      fetch(`https://fakestoreapi.com/products/${productId}`)
+        .then(response => response.json())
+        .then(product => {
+          const productDetailsContainer = document.getElementById('productDetailsContainer');
+
+          // Cria elementos HTML para exibir os detalhes do produto
+          const title = document.createElement('h2');
+          title.textContent = product.title;
+
+          const image = document.createElement('img');
+          image.classList.add('product-image');
+          image.src = product.image;
+          image.alt = product.title;
+
+          const description = document.createElement('p');
+          description.textContent = product.description;
+
+          const price = document.createElement('p');
+          price.textContent = `Preço: $${product.price}`;
+
+          // Adiciona elementos à estrutura do DOM
+          productDetailsContainer.appendChild(title);
+          productDetailsContainer.appendChild(image);
+          productDetailsContainer.appendChild(description);
+          productDetailsContainer.appendChild(price);
+        })
+        .catch(error => console.log(error));
+    }
+
+    // Obtém o ID do produto a partir da URL e busca os detalhes do produto correspondente
+    const productId = getProductIdFromURL();
+    if (productId) {
+      fetchProductDetails(productId);
+    }
+  </script>
+
+	
+    <footer>
+        <div class="container">
+          <div class="row">
+            <div class="col-md-4">
+              <h3>Métodos de pagamento</h3>
+              <img src="Imagens\pngwing.com (1).png"width="60px" alt="Cartões de crédito aceitos">
+              <img src="Imagens\pngwing.com.png"width="60px" alt="Cartões de crédito aceitos">
+              <img src="Imagens\image-19.webp"width="60px" alt="Cartões de crédito aceitos">
+            </div>
+            <div class="col-md-4">
+              <h3>Redes sociais</h3>
+              <ul>
+                <li><a href="https://www.facebook.com/" target="_blank"><i class="fab fa-facebook-f"></i>
+                <img src="Imagens\facebook-512.webp"width=40px alt=""></a></li>
+                <li><a href="https://twitter.com/" target="_blank"><i class="fab fa-twitter"></i>
+                <img src="Imagens\124021.png"width="40px" alt=""></a></li>
+                <li><a href="https://www.instagram.com/" target="_blank"><i class="fab fa-instagram"></i>
+                <img src="Imagens\2048px-Instagram_icon.png"width="40px" alt=""></a></li>
+              </ul>
+            </div>
+            <div class="col-md-4">
+              <h3>Contato</h3>
+              <p>Endereço: Rua Exemplo, 123 - Bairro Exemplo</p>
+              <p>Telefone: (31)1234-5678</p>
+              <p>Email: contato@gmail.com</p>
+            </div>
+          </div>
+        </div>
+      </footer>
+</body>
+</html>
+<style>
+  /* Estilização de newsletter */
+form {
+	display: flex;
+	margin-top: 20px;
+}
+
+input[type="email"] {
+	flex: 1;
+	border: 2px solid #ccc;
+	border-radius: 5px 0 0 5px;
+}
+
+button[type="submit"] {
+	padding: 10px 20px;
+	background-color: #333;
+	color: #fff;
+	border: none;
+	border-radius: 0 5px 5px 0;
+	cursor: pointer;
+}
+
+/* Estilização do rodapé */
+footer {
+	background-color: #f5f5f5;
+	padding: 20px;
+	box-shadow: 0px -2px 5px rgba(0, 0, 0, 0.1);
+	display: flex;
+}
+</style>
