@@ -13,21 +13,24 @@ public class Main {
     maiúsculas ou minúsculas. Palavras com apenas uma letra também deverão ser consideradas. 
     Portanto, seu programa deverá ser "CaSe InSeNsItIvE". Por exemplo, palavras como "Apple", 
     "apple" ou "APPLE" deverão ser consideradas como a mesma palavra.
+
+Entrada:
+    A entrada contém no máximo 10000 linhas de texto, cada uma delas com no máximo 200 caracteres. O fim de entrada é determinado pelo EOF.
+
+Saída:
+    Você deve imprimir uma lista de diferentes palavras que aparecem no texto, uma palavra por linha. Todas as palavras devem ser impressas com 
+    letras minúsculas, em ordem alfabética. Deverá haver no máximo 5000 palavras distintas.
+
+
  */
 
- /*
- -So detectar letras
- -Separar por espaço ou caractere que nao for letra
- -Comparar Strings lexicograficamente com equalsIgnoreCase() 
- -
-  */
+
     public static void main(String[] args) throws Exception {
         String input;
         Scanner scanner=new Scanner(System.in);
         LinkedList<String> palavras=new LinkedList<String>();
 
-        //int i=0;
-        //&&i++<2
+     
         while(scanner.hasNext()){
             input=scanner.nextLine();
             input=input.toLowerCase();
@@ -36,7 +39,7 @@ public class Main {
             
             String[]partes=input.split(" ");
             for (String parte : partes) {
-                if (!parte.isEmpty()&&!palavras.contains(parte)) { // Verifica se a parte não está vazia
+                if (!parte.isEmpty()&&!palavras.contains(parte)) { // Verifica se a parte não está vazia ou se é repetida
                     palavras.add(parte);
                 }
             }
