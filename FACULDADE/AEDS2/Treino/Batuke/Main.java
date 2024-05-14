@@ -1,4 +1,5 @@
 import java.util.Scanner;
+import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -58,19 +59,34 @@ public class Main {
         CelulaMatriz current3=aponta(inicio.inicio, coluna, linha);
         System.out.printf("%d ",current3.elemento);
         CelulaMatriz atual=current3;
-        int help=0;
+        int passos=1;
+        int direcao=0;
+        
         iteracao=0;
 
-            for (int i = 1; i < n && atual != null; i++) {
+           /*  for (int i = 1; i < n && atual != null; i++) {
                 if (atual != null) for(int x=1;x<=i+help;x++){atual = umDir(atual);iteracao++; if (atual != null)System.out.printf("%d ", atual.elemento);}
                 if (atual != null) for(int x=1;x<=i+help;x++){atual = umDown(atual);iteracao++; if (atual != null)System.out.printf("%d ", atual.elemento);}
                 if (atual != null) for(int x=0;x<=i+help;x++){atual = umEsq(atual);iteracao++; if (atual != null)System.out.printf("%d ", atual.elemento);}
                 if (atual != null) for(int x=0;x<=i+help;x++){atual = umUp(atual);iteracao++; if (atual != null)System.out.printf("%d ", atual.elemento);}
                 help++;
-         }
-        
+         } */
+        while(atual != null){
+            
+            switch(direcao){
+                case 0: for(int i=1;i<=passos;i++){atual=umDir(atual);iteracao++;if (atual == null) break;System.out.printf("%d ", atual.elemento);}break;
+                case 1: for(int i=1;i<=passos;i++){atual=umDown(atual);iteracao++;if (atual == null) break;System.out.printf("%d ", atual.elemento);}break;
+                case 2: for(int i=1;i<=passos;i++){atual=umEsq(atual);iteracao++;if (atual == null) break;System.out.printf("%d ", atual.elemento);}break;
+                case 3: for(int i=1;i<=passos;i++){atual=umUp(atual);iteracao++;if (atual == null) break;System.out.printf("%d ", atual.elemento);}break;
+            }
+            if (direcao == 1 || direcao == 3) {
+                passos++;
+            }
+            // Muda a direção
+            direcao = (direcao + 1) % 4;
+        }
         System.out.println("\n"+iteracao);
-
+scanner.close();
 }
 
 public static CelulaMatriz aponta(CelulaMatriz inicio,int col,int linha){
