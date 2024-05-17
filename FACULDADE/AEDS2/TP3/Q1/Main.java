@@ -7,12 +7,12 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
+//AUTOR: Felipe Carvalho 17/05/2024
 public class Main {
 
     public static void main(String[] args) throws Exception {
         //  "/tmp/characters.csv"
-        String nomeArquivo = "C:\\Users\\Felipe\\Desktop\\TP3\\tmp\\characters.csv";
+        String nomeArquivo = "TP3\\tmp\\characters.csv";
         Scanner scanner = new Scanner(new File(nomeArquivo));
         scanner.nextLine(); // Ignorar o cabeçalho
         String input = "";
@@ -20,7 +20,8 @@ public class Main {
         lista.inicio=new Celula();
         lista.fim=lista.inicio;
         lista.tam=0;
-
+        Personagem[] arquivo=new Personagem[405];
+        int a=0;
         while (scanner.hasNextLine()){
             String linha = scanner.nextLine();
             Personagem personagem=new Personagem();
@@ -61,51 +62,76 @@ public class Main {
             personagem.setHairColour(dados[16]);
             personagem.setWizard(dados[17]);
             //colocar na lista 
-            lista.inserirFim(personagem);
+            arquivo[a++]=personagem;
+            
         }
+        
         scanner.close();
         scanner = new Scanner(System.in);
         input=scanner.nextLine();
          while (!input.equals("FIM")) {
-            
+            for(int c=0;c<404;c++){
+                if(input.equals(arquivo[c].getId()))lista.inserirFim(arquivo[c]);
+            }
             input=scanner.nextLine();
         }
+        lista.inicio=lista.inicio.prox;
         int n=scanner.nextInt();
         String comando;
         int pos;
         String personagemAserinserido;
+        Celula removido=null;
         for(int i=0;i<n;i++){
             comando=scanner.next();
             switch (comando) {
                 //remover inicio
                 case "RI":
-                    lista.removerInicio().personagem.imprimir();
+                lista.tamanho(lista);
+                removido=lista.removerInicio();
+                if(removido!=null)System.out.println("(R) "+removido.personagem.getName());
                     break;
 
                 //remover fim
                 case "RF":
-                    
+                lista.tamanho(lista);
+                removido=lista.removerFim();
+                if(removido!=null)System.out.println("(R) "+removido.personagem.getName());
                     break;
                 
                 //remover qualquer posicao
                 case "R*":
-                    
+                lista.tamanho(lista);
+                pos =scanner.nextInt();
+                removido=lista.remover(pos);
+                if(removido!=null)System.out.println("(R) "+removido.personagem.getName());
                 break;
 
                 //inserir inicio
                 case "II":
+                lista.tamanho(lista);
                 personagemAserinserido=scanner.next();
+                for(int c=0;c<404;c++){
+                    if(personagemAserinserido.equals(arquivo[c].getId()))lista.inserirInicio(arquivo[c]);
+                }
                     break;
 
                 //inserir fim
                 case "IF":
+                lista.tamanho(lista);
                 personagemAserinserido=scanner.next();
+                for(int c=0;c<404;c++){
+                    if(personagemAserinserido.equals(arquivo[c].getId()))lista.inserirFim(arquivo[c]);
+                }
                     break;
 
                 //inserir qualaquer posicao
                 case "I*":
+                lista.tamanho(lista);
                 pos =scanner.nextInt();
                 personagemAserinserido=scanner.next();
+                for(int c=0;c<404;c++){
+                    if(personagemAserinserido.equals(arquivo[c].getId()))lista.inserir(arquivo[c], pos);
+                }
                     break;
 
                 //default
@@ -134,16 +160,27 @@ public class Main {
         //lista.removerInicio().personagem.imprimir(); teste de removerInicio
         //lista.remover(posição).personagem.imprimir(); teste de remoção com parametro
        
-        
+        lista.print();
         scanner.close();
     }
 
-
+//AUTOR: Felipe Carvalho 17/05/2024
     //CLASSE LISTA
     public static class Lista{
         Celula inicio;
         Celula fim;
         int tam;
+        void print(){
+            Celula pos=this.inicio;
+            int i=0;
+            while (pos!=null){
+                if(pos.personagem!=null){
+                    System.out.printf("[%d ",i++);
+                    pos.personagem.imprimir();
+                    pos=pos.prox;
+                }else pos=null;
+            }
+        }
         int tamanho(Lista lista){
             int tam=0;
             Celula percorre=lista.inicio;
@@ -156,37 +193,58 @@ public class Main {
         }
         void inserirInicio(Personagem personagemRecebido){
             Celula inicioNovo=new Celula();
-            this.inicio.ant=inicioNovo;
-            inicioNovo.prox=this.inicio;
-            inicioNovo.personagem=personagemRecebido;
-            this.inicio=inicioNovo;
+            if(this.inicio!=null){
+                this.inicio.ant=inicioNovo;
+                inicioNovo.prox=this.inicio;
+                inicioNovo.personagem=personagemRecebido;
+                this.inicio=inicioNovo;
+            }else {
+                this.inicio=inicioNovo;
+                this.inicio.personagem=personagemRecebido;
+                this.fim=this.inicio;
+            }
         }
         void inserirFim(Personagem personagemRecebido){
             Celula fimNovo=new Celula();
-            this.fim.prox=fimNovo;
-            fimNovo.ant=this.fim;
-            fimNovo.personagem=personagemRecebido;
-            this.fim=fimNovo;
+                this.fim.prox=fimNovo;
+                fimNovo.ant=this.fim;
+                fimNovo.personagem=personagemRecebido;
+                this.fim=fimNovo;
+      
         }
-        void inserir(Personagem personagem,int pos){
-                
+        void inserir(Personagem personagemRecebido,int pos){
+            Celula inseirPos=new Celula();
+            inseirPos.personagem=personagemRecebido;
+            Celula caminhar=this.inicio;
+            int i=0;
+            while((i++)!=pos && caminhar!=null){
+                caminhar=caminhar.prox;
+            }
+            if(caminhar==null){
+                System.out.println("Posição de inserção inválida");
+            }else{
+                inseirPos.prox=caminhar;
+                inseirPos.ant=caminhar.ant;
+                caminhar.ant.prox=inseirPos;
+                caminhar.ant=inseirPos;
+            }
         }
         Celula removerInicio(){
+            
             Celula retorno=new Celula();
-            retorno.personagem=this.inicio.prox.personagem;
+            retorno.personagem=this.inicio.personagem;
             this.inicio.personagem=null;
-            this.inicio.prox=this.inicio.prox.prox;
-            this.inicio.prox.ant=null;
-            this.inicio.ant=null;
-
+            this.inicio=this.inicio.prox;
             return retorno;
+         
         }
         Celula remover(int pos){
             Celula retorno=new Celula();
             Celula percorre=this.inicio;
             int i=0;
+            if(pos==0&&this.inicio.prox!=null)this.inicio=this.inicio.prox;
             while(percorre!=null){
-                if((i++) ==pos+1){
+                if((i++) ==pos){
                     retorno.personagem=percorre.personagem;
                     percorre.personagem=null;
                     
@@ -194,9 +252,10 @@ public class Main {
                     percorre.ant.prox=percorre.prox;
                     percorre.prox=null;
                     percorre.ant=null;
+                    percorre=null;
                     return retorno;
                 }
-                percorre=percorre.prox;
+                if(percorre!=null)percorre=percorre.prox;
             }
             return retorno;
         }
@@ -274,7 +333,7 @@ public class Main {
         }
         SimpleDateFormat formatoEntrada = new SimpleDateFormat("yyyy-MM-dd");
         public void imprimir() {
-            System.out.println("[" + id + " ## " + name + " ## " + alternateNames + " ## " + house +" ## " + ancestry + " ## " + species + " ## " + patronus + " ## " +
+            System.out.printf("## " + id + " ## " + name + " ## " + alternateNames + " ## " + house +" ## " + ancestry + " ## " + species + " ## " + patronus + " ## " +
                     hogwartsStaff + " ## " + hogwartsStudent + " ## " + actorName + " ## " + alive + " ## " + birthDateString +
                     " ## " + yearOfBirth + " ## " + eyeColour + " ## " + gender + " ## " + hairColour +" ## " + wizard +  ']'+'\n');
         }
@@ -431,3 +490,4 @@ public class Main {
         return formatoEntrada.parse(dataString);
     }
 }
+//AUTOR: Felipe Carvalho 17/05/2024
