@@ -1,4 +1,4 @@
 # Códigos
-Códigos feitos durante a faculdade
+Códigos e trabalhos feitos durante a faculdade
 
-Começo: 1ºsemestre 2023
+Começo: 1º semestre de 2023
