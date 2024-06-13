@@ -74,98 +74,19 @@ public class Main {
             for(int c=0;c<404;c++){
                 if(input.equals(arquivo[c].getId())){
                     lista.inserirFim(arquivo[c]);
-                    arvore.Insere(arquivo[c]);
+                    arvore.inserir(arquivo[c]);
                 }
             }
             input=scanner.nextLine();
         }
         lista.inicio=lista.inicio.prox;
-        int n=scanner.nextInt();
-        String comando;
-        int pos;
-        String personagemAserinserido;
-        Celula removido=null;
-        for(int i=0;i<n;i++){
-            comando=scanner.next();
-            switch (comando) {
-                //remover inicio
-                case "RI":
-                lista.tamanho(lista);
-                removido=lista.removerInicio();
-                if(removido!=null)System.out.println("(R) "+removido.personagem.getName());
-                    break;
-
-                //remover fim
-                case "RF":
-                lista.tamanho(lista);
-                removido=lista.removerFim();
-                if(removido!=null)System.out.println("(R) "+removido.personagem.getName());
-                    break;
-                
-                //remover qualquer posicao
-                case "R*":
-                lista.tamanho(lista);
-                pos =scanner.nextInt();
-                removido=lista.remover(pos);
-                if(removido!=null)System.out.println("(R) "+removido.personagem.getName());
-                break;
-
-                //inserir inicio
-                case "II":
-                lista.tamanho(lista);
-                personagemAserinserido=scanner.next();
-                for(int c=0;c<404;c++){
-                    if(personagemAserinserido.equals(arquivo[c].getId()))lista.inserirInicio(arquivo[c]);
-                }
-                    break;
-
-                //inserir fim
-                case "IF":
-                lista.tamanho(lista);
-                personagemAserinserido=scanner.next();
-                for(int c=0;c<404;c++){
-                    if(personagemAserinserido.equals(arquivo[c].getId()))lista.inserirFim(arquivo[c]);
-                }
-                    break;
-
-                //inserir qualaquer posicao
-                case "I*":
-                lista.tamanho(lista);
-                pos =scanner.nextInt();
-                personagemAserinserido=scanner.next();
-                for(int c=0;c<404;c++){
-                    if(personagemAserinserido.equals(arquivo[c].getId()))lista.inserir(arquivo[c], pos);
-                }
-                    break;
-
-                //default
-                default:
-                    break;
-            }
-        }
+   
         
         
       
-        /*
-        IMPRIME A LISTA TODA 
-       int contador=0;
-       Celula percorre=lista.inicio.prox;
-       while(percorre!=null){
-            percorre.personagem.imprimir();
-            percorre=percorre.prox;
-            contador++;
-        } 
-          System.out.println(contador+" lidos="+i+"  tamanhoLista="+lista.tamanho(lista));
-        */
-
-        //lista.inicio.prox.personagem.imprimir();  saber quem esta no inicio
-        //lista.fim.personagem.imprimir();          saber quem esta no fim
-        //lista.removerFim().personagem.imprimir(); teste de removerFim
-        //lista.removerInicio().personagem.imprimir(); teste de removerInicio
-        //lista.remover(posição).personagem.imprimir(); teste de remoção com parametro
-       
-        lista.print();
-        arvore.Print();
+       //9e3f7ce4-b9a7-4244-b709-dae5c1f1d4a8
+        arvore.caminharCentral();
+        
         scanner.close();
     }
 
@@ -498,30 +419,92 @@ public class Main {
     public static class Arvore{
         No raiz;
         public class No {
-            Personagem elemento;
-            No esq, dir;
-    
-            // Construtor No
+            public Personagem elemento; // Conteudo do no.
+            public No esq, dir;  // Filhos da esq e dir.
+        
+            /**
+             * Construtor da classe.
+             * @param elemento Conteudo do no.
+             */
             public No(Personagem elemento) {
+                this(elemento, null, null);
+            }
+        
+            /**
+             * Construtor da classe.
+             * @param elemento Conteudo do no.
+             * @param esq No da esquerda.
+             * @param dir No da direita.
+             */
+            public No(Personagem elemento, No esq, No dir) {
                 this.elemento = elemento;
-                this.esq = null;
-                this.dir = null;
+                this.esq = esq;
+                this.dir = dir;
             }
         }
         
   
 
     //Inserir
-    public  void Insere(Personagem x){
-        if(this.raiz==null)this.raiz=new No(x);
-        
-    }
+    public void inserir(Personagem x) throws Exception {
+		raiz = inserir(x, raiz);
+	}
+
+	/**
+	 * Metodo privado recursivo para inserir elemento.
+	 * @param x Elemento a ser inserido.
+	 * @param i No em analise.
+	 * @return No em analise, alterado ou nao.
+	 * @throws Exception Se o elemento existir.
+	 */
+	private No inserir(Personagem x, No i) throws Exception {
+		if (i == null) {
+         i = new No(x);
+
+      } else if (x.yearOfBirth < i.elemento.yearOfBirth) {
+         i.esq = inserir(x, i.esq);
+
+      } else if (x.yearOfBirth > i.elemento.yearOfBirth) {
+         i.dir = inserir(x, i.dir);
+
+      } else {
+         throw new Exception("Erro ao inserir!");
+      }
+
+		return i;
+	}
 
     //Print
     public void Print(){
         System.out.println("Arvore: ");
         this.raiz.elemento.imprimir();
+        if(this.raiz.dir==null)System.out.println("Direita null");
+        else this.raiz.dir.elemento.imprimir();
+        if(this.raiz.esq==null)System.out.println("Esquerda null");
+        else this.raiz.esq.elemento.imprimir();
     }
+
+    /**
+	 * Metodo publico iterativo para exibir elementos.
+	 */
+	public void caminharCentral() {
+		System.out.print("INICIO\n");
+		caminharCentral(raiz);
+		System.out.println("FIM");
+	}
+
+    //Caminhamento
+	/**
+	 * Metodo privado recursivo para exibir elementos.
+	 * @param i No em analise.
+	 */
+	private void caminharCentral(No i) {
+		if (i != null) {
+			caminharCentral(i.esq); // Elementos da esquerda.
+            i.elemento.imprimir();  // Conteudo do No
+			caminharCentral(i.dir); // Elementos da direita.
+		}
+	}
+}
 }
     
-}
