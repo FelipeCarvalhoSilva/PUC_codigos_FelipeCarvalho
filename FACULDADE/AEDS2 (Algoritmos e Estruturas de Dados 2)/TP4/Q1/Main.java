@@ -12,7 +12,8 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         //  "/tmp/characters.csv"
-        String nomeArquivo = "C:/Users/Felipe/Desktop/TP's AEDS2/TP4/tmp/characters.csv";
+        // C:\Users\Felipe\Desktop\TP's AEDS2\TP4\tmp\characters.csv
+        String nomeArquivo = "C:\\Users\\Felipe\\Desktop\\TP's AEDS2\\TP4\\tmp\\characters.csv";
         Scanner scanner = new Scanner(new File(nomeArquivo));
         scanner.nextLine(); // Ignorar o cabeçalho
         String input = "";
@@ -73,20 +74,28 @@ public class Main {
          while (!input.equals("FIM")) {
             for(int c=0;c<404;c++){
                 if(input.equals(arquivo[c].getId())){
-                    lista.inserirFim(arquivo[c]);
+                    //lista.inserirFim(arquivo[c]);
                     arvore.inserir(arquivo[c]);
                 }
             }
             input=scanner.nextLine();
         }
-        lista.inicio=lista.inicio.prox;
-   
+        //lista.inicio=lista.inicio.prox;
+        Scanner input2=new Scanner(System.in);
+        while(!(input=input2.nextLine()).equals("FIM")){
+            for(int c=0;c<404;c++){
+                if(input.equals(arquivo[c].getName())){
+                    System.out.printf(arquivo[c].getName()+" => ");
+                    arvore.pesquisar(arquivo[c]);
+                }
+        }
+    }
         
         
       
-       //9e3f7ce4-b9a7-4244-b709-dae5c1f1d4a8
-        arvore.caminharCentral();
-        
+        // 9e3f7ce4-b9a7-4244-b709-dae5c1f1d4a8
+        //arvore.caminharCentral();
+        input2.close();
         scanner.close();
     }
 
@@ -461,14 +470,14 @@ public class Main {
 		if (i == null) {
          i = new No(x);
 
-      } else if (x.yearOfBirth < i.elemento.yearOfBirth) {
+      } else if (x.getName().compareTo(i.elemento.getName())<0) {
          i.esq = inserir(x, i.esq);
 
-      } else if (x.yearOfBirth > i.elemento.yearOfBirth) {
+      } else if (x.getName().compareTo(i.elemento.getName())>0) {
          i.dir = inserir(x, i.dir);
 
       } else {
-         throw new Exception("Erro ao inserir!");
+         throw new Exception("Erro ao inserir, Duplicata");
       }
 
 		return i;
@@ -505,6 +514,32 @@ public class Main {
 			caminharCentral(i.dir); // Elementos da direita.
 		}
 	}
+
+    //Pesquisa
+    public boolean pesquisar(Personagem x) {
+        System.out.printf("raiz ");
+		return pesquisar(x, raiz);
+	}
+    private boolean pesquisar(Personagem x, No i) {
+        boolean resp;
+          if (i == null) {
+            System.out.printf("NAO\n");
+           resp = false;
+  
+        } else if (x == i.elemento) {
+            System.out.printf("SIM\n");
+           resp = true;
+  
+        } else if (x.getName().compareTo(i.elemento.getName())<0) {
+            System.out.printf("esq ");
+           resp = pesquisar(x, i.esq);
+  
+        } else {
+            System.out.printf("dir ");
+           resp = pesquisar(x, i.dir);
+        }
+        return resp;
+      }
 }
 }
     
