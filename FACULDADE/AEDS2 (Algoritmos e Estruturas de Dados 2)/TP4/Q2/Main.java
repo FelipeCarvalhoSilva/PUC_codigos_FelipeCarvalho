@@ -13,7 +13,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         //  "/tmp/characters.csv"
         // C:\Users\Felipe\Desktop\TP's AEDS2\TP4\tmp\characters.csv
-        String nomeArquivo = "C:\\Users\\Felipe\\Desktop\\TP's AEDS2\\TP4\\tmp\\characters.csv";
+        String nomeArquivo = "/tmp/characters.csv";
         Scanner scanner = new Scanner(new File(nomeArquivo));
         scanner.nextLine(); // Ignorar o cabeçalho
         String input = "";
@@ -71,15 +71,6 @@ public class Main {
         scanner = new Scanner(System.in);
         input=scanner.nextLine();
         Arvore arvore=new Arvore();
-         while (!input.equals("FIM")) {
-            for(int c=0;c<404;c++){
-                if(input.equals(arquivo[c].getId())){
-                    //lista.inserirFim(arquivo[c]);
-                    
-                }
-            }
-            input=scanner.nextLine();
-        }
         arvore.inserir(7);
         arvore.inserir(3);
         arvore.inserir(11);
@@ -95,34 +86,33 @@ public class Main {
         arvore.inserir(10);
         arvore.inserir(12);
         arvore.inserir(14);
-        arvore.inserirInterno("a",0);
-        arvore.inserirInterno("a",6);
-        arvore.inserirInterno("tz",6);
-        arvore.inserirInterno("teste",7);
-        Scanner input2=new Scanner(System.in);
-        Personagem teste=new Personagem();
-        while(!(input=input2.nextLine()).equals("FIM")){
+
+         while (!input.equals("FIM")) {
             for(int c=0;c<404;c++){
-                if(input.equals(arquivo[c].getName())){
-                    System.out.printf(arquivo[c].getName()+" =>");
+                if(input.equals(arquivo[c].getId())){
+                    arvore.inserirInterno(arquivo[c].name,(arquivo[c].yearOfBirth%15));
                 }
-                if(input.equals("teste")){
-                    
-                    teste.name="teste";
-                    teste.yearOfBirth=0;
-                    
-                }
+            }
+            input=scanner.nextLine();
+        }
+       input="";
+     while (!(input = scanner.nextLine()).equals("FIM")) {
+
+    // Iterar sobre o array de arquivo
+    for (int c = 0; c < 404; c++) {
+        // Verificar se o input corresponde ao nome no arquivo
+        if (input.equals(arquivo[c].getName())) {
+            // Realizar a pesquisa na árvore com a chave adequada
+            arvore.pesquisar(arquivo[c].getYearOfBirth() % 15, input);
+            break; // Parar o loop assim que encontrar o nome desejado
         }
     }
-        
+}
+         //
         
       
         // 9e3f7ce4-b9a7-4244-b709-dae5c1f1d4a8
-        arvore.imprimir();
-        System.out.println("pesquisa:");
-        System.out.printf("teste => ");
-        arvore.pesquisar(7,"teste");
-        input2.close();
+        //arvore.imprimir();
         scanner.close();
     }
 
@@ -515,7 +505,7 @@ public class Main {
     
         // Método público para inserir um nó interno na árvore interna de um nó principal
         public void inserirInterno(String nome, int elementoPrincipal) {
-            No noPrincipal = buscarNo(elementoPrincipal, raiz);
+            No noPrincipal = buscarNo(elementoPrincipal, this.raiz);
             if (noPrincipal != null) {
                 if (noPrincipal.raizInterna == null) {
                     noPrincipal.raizInterna = new NoInterno(nome);
@@ -578,36 +568,60 @@ public class Main {
             }
         }
         public void pesquisar(int chave, String nome) {
+            System.out.printf("%s => raiz",nome);
             if (pesquisar(raiz, chave, nome)) {
-                System.out.println(" SIM");
+                System.out.printf(" SIM\n");
             } else {
-                System.out.println(" NAO");
+                System.out.printf(" NAO\n");
             }
         }
         
         private boolean pesquisar(No i, int chave, String nome) {
             if (i == null) {
                 return false;
-            } else if (chave < i.elemento) {
-                System.out.print(" ESQ");
-                return pesquisar(i.esq, chave, nome);
-            } else if (chave > i.elemento) {
-                System.out.print(" DIR");
-                return pesquisar(i.dir, chave, nome);
-            } else {
-                System.out.print("(" + i.elemento + ": ");
-                boolean encontrado = pesquisarInterno(i.raizInterna, nome);
-                System.out.print(") ");
-                return encontrado;
             }
+        
+            boolean encontrado = false;
+        
+            // Verificar se há árvore interna para percorrer
+            NoInterno pesquisa = i.raizInterna;
+            while (pesquisa != null) {
+                if (pesquisa.nome.compareTo(nome) == 0) {
+                    return true; // Encontrou o nome na árvore interna
+                } else if (nome.compareTo(pesquisa.nome) < 0) {
+                    System.out.print("->esq");
+                    pesquisa = pesquisa.esq; // Movimenta para o nó à esquerda na árvore interna
+                } else {
+                    System.out.print("->dir");
+                    pesquisa = pesquisa.dir; // Movimenta para o nó à direita na árvore interna
+                }
+            }
+        
+            // Se não há árvore interna para percorrer, continua na árvore externa
+            if (!encontrado) {
+                System.out.print(" ESQ");
+                encontrado = pesquisar(i.esq, chave, nome);
+            }
+        
+            // Verificar o nó atual, se a chave for igual ao elemento
+          
+        
+            if (!encontrado) {
+                System.out.print(" DIR");
+                encontrado = pesquisar(i.dir, chave, nome);
+            }
+        
+            return encontrado;
         }
         
-        private boolean pesquisarInterno(NoInterno raizInterna, String nome) {
+        
+        
+        
+       /*  private boolean pesquisarInterno(NoInterno raizInterna, String nome) {
             if (raizInterna == null) {
                 return false; // Se a raiz interna for nula, o nome não está na árvore interna
             }
             if (raizInterna.nome.compareTo(nome) == 0) {
-                System.out.print(" SIM");
                 return true;
             } else if (nome.compareTo(raizInterna.nome) < 0) {
                 System.out.print("->esq");
@@ -616,9 +630,10 @@ public class Main {
                 System.out.print("->dir");
                 return pesquisarInterno(raizInterna.dir, nome);
             }
-        }
+        } */
         
         
+
         
     
         // Método privado para buscar um nó na árvore principal
