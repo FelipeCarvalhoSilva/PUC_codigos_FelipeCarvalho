@@ -1,5 +1,4 @@
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.File;
 import java.util.Date;
 import java.util.Scanner;
 import java.text.ParseException;
@@ -13,121 +12,167 @@ import java.util.regex.Pattern;
 public class Main {
 
     public static void main(String[] args) throws Exception {
+        //  "/tmp/characters.csv"
+        // C:\Users\Felipe\Desktop\TP's AEDS2\TP4\tmp\characters.csv
         String nomeArquivo = "/tmp/characters.csv";
-        RandomAccessFile file = null;
-
-        try {
-            file = new RandomAccessFile(nomeArquivo, "r");
-
-            // Ignora o cabeçalho (primeira linha)
-            file.readLine(); // Ou file.readLine(); se o método anterior não estiver funcionando.
-
-            Lista lista = new Lista();
-            lista.inicio = new Celula();
-            lista.fim = lista.inicio;
-            lista.tam = 0;
-
-            Personagem[] arquivo = new Personagem[405];
-            int a = 0;
-
-            // Leitura dos dados
-            String line;
-            while ((line = file.readLine()) != null) {
-                Personagem personagem = new Personagem();
-                String[] dados = line.split(";");
-
-                personagem.setId(dados[0]);
-                personagem.setName(dados[1]);
-
-                ArrayList<String> alternateNames = new ArrayList<>();
-                Pattern pattern = Pattern.compile("'(.*?)'");
-                Matcher matcher = pattern.matcher(dados[2]);
-                while (matcher.find()) {
-                    alternateNames.add(matcher.group(1));
-                }
-
-                StringBuilder formattedAlternateNames = new StringBuilder("{");
-                for (int x = 0; x < alternateNames.size(); x++) {
-                    formattedAlternateNames.append(alternateNames.get(x));
-                    if (x < alternateNames.size() - 1) {
-                        formattedAlternateNames.append(", ");
-                    }
-                }
-                formattedAlternateNames.append("}");
-                String formatado = formattedAlternateNames.toString();
-
-                personagem.setAlternateNames(formatado);
-                personagem.setHouse(dados[3]);
-                personagem.setAncestry(dados[4]);
-                personagem.setSpecies(dados[5]);
-                personagem.setPatronus(dados[6]);
-                personagem.setHogwartsStaff(dados[7]);
-                personagem.setHogwartsStudent(dados[8]);
-                personagem.setActorName(dados[9]);
-                personagem.setAlive(dados[10]);
-                personagem.setAlternateActors(dados[11]);
-                personagem.setBirthDate(converterParaData(dados[12]));
-                personagem.setBirthDateString(dados[12]);
-                personagem.setYearOfBirth(Integer.parseInt(dados[13]));
-                personagem.setEyeColour(dados[14]);
-                personagem.setGender(dados[15]);
-                personagem.setHairColour(dados[16]);
-                personagem.setWizard(dados[17]);
-
-                // Adicionar à lista e ao array
-                lista.inserirFim(personagem);
-                arquivo[a++] = personagem;
+        Scanner scanner = new Scanner(new File(nomeArquivo));
+        scanner.nextLine(); // Ignorar o cabeçalho
+        String input = "";
+        Lista lista=new Lista();
+        lista.inicio=new Celula();
+        lista.fim=lista.inicio;
+        lista.tam=0;
+        Personagem[] arquivo=new Personagem[405];
+        int a=0;
+        while (scanner.hasNextLine()){
+            String linha = scanner.nextLine();
+            Personagem personagem=new Personagem();
+            String[] dados = linha.split(";");
+            personagem.setId(dados[0]);
+            personagem.setName(dados[1]);
+            ArrayList<String> alternateNames=new ArrayList<>();
+            Pattern pattern = Pattern.compile("'(.*?)'");
+            Matcher matcher = pattern.matcher(dados[2]);
+            while (matcher.find()){
+                alternateNames.add(matcher.group(1));
             }
-
-            // Interagir com o usuário
-            Scanner scanner = new Scanner(System.in);
-            String input = scanner.nextLine();
-
-            Arvore arvore = new Arvore();
-
-            while (!input.equals("FIM")) {
-                for (int c = 0; c < 404; c++) {
-                    if (input.equals(arquivo[c].getId())) {
-                        arvore.inserir(arquivo[c]);
-                    }
+            StringBuilder formattedAlternateNames = new StringBuilder("{");
+            for (int x = 0; x < alternateNames.size(); x++) {
+                formattedAlternateNames.append(alternateNames.get(x));
+                if (x < alternateNames.size() - 1) {
+                    formattedAlternateNames.append(", ");
                 }
-                input = scanner.nextLine();
             }
-            input="";
-            while (!(input = scanner.nextLine()).equals("FIM")) {
-                for (int c = 0; c < 404; c++) {
-                    if (input.equals(arquivo[c].getName())) {
-                        /* if(input.equals("James Potter")){tabela.pesquisar(arquivo[c]);break;}
-                    else tabela.pesquisar(arquivo[c]); */
-                    if(input.equals("James Potter")){
-                        System.out.printf(arquivo[c].getName() + " => ");
-                        arvore.pesquisar(arquivo[c]);
+            formattedAlternateNames.append("}");
+            String formatado=formattedAlternateNames.toString();
+            
+            personagem.setAlternateNames(formatado);
+            personagem.setHouse(dados[3]);
+            personagem.setAncestry(dados[4]);
+            personagem.setSpecies(dados[5]);
+            personagem.setPatronus(dados[6]);
+            personagem.setHogwartsStaff(dados[7]);
+            personagem.setHogwartsStudent(dados[8]);
+            personagem.setActorName(dados[9]);
+            personagem.setAlive(dados[10]);
+            personagem.setAlternateActors(dados[11]);
+            personagem.setBirthDate(converterParaData(dados[12]));
+            personagem.setBirthDateString(dados[12]);
+            personagem.setYearOfBirth(Integer.parseInt(dados[13]));
+            personagem.setEyeColour(dados[14]);
+            personagem.setGender(dados[15]);
+            personagem.setHairColour(dados[16]);
+            personagem.setWizard(dados[17]);
+            //colocar na lista 
+            arquivo[a++]=personagem;
+            
+        }
+        
+        scanner.close();
+        scanner = new Scanner(System.in);
+        input=scanner.nextLine();
+        //Arvore arvore=new Arvore();
+        hash tabela= new hash();
+         while (!input.equals("FIM")) {
+            for(int c=0;c<404;c++){
+                if(input.equals(arquivo[c].getId())){
+                    //lista.inserirFim(arquivo[c]);
+                    //arvore.inserir(arquivo[c]);
+                    tabela.inserir(arquivo[c]);
+                }
+            }
+            input=scanner.nextLine();
+        }
+        //lista.inicio=lista.inicio.prox;
+       input="";
+       while (!(input = scanner.nextLine()).equals("FIM")) {
+            for(int c=0;c<404;c++){
+                if(input.equals(arquivo[c].getName())){
+                    //System.out.printf(arquivo[c].getName()+" => ");
+                    //arvore.pesquisar(arquivo[c]);
+                    if(input.equals("James Potter")){tabela.pesquisar(arquivo[c]);break;}
+                    else tabela.pesquisar(arquivo[c]);
+                }
+        }
+    }
+        
+        
+      
+        // 9e3f7ce4-b9a7-4244-b709-dae5c1f1d4a8
+        //arvore.caminharCentral();
+        scanner.close();
+    }
+
+    //TABELA HASH
+    static class hash {
+        Personagem[] elementos;
+        int tam;
+        int reserva;
+        int reservaMAX;
+    
+        hash() {
+            this.tam = 21;
+            this.reserva = 0;
+            this.elementos = new Personagem[30];
+            this.reservaMAX = 9;
+        }
+    
+        // PESQUISAR
+        public boolean pesquisar(Personagem x) {
+            String name = x.getName();
+            int ascii = 0;
+    
+            for (int i = 0; i < name.length(); i++) {
+                ascii += name.charAt(i);
+            }
+    
+            ascii = ascii % tam;
+    
+            if (elementos[ascii] == x) {
+                System.out.println(name + " (Posicao: " + ascii + ") SIM");
+                return true;
+            }
+    
+            for (int i = 0; i < reserva; i++) {
+                if (elementos[tam + i] == x) {
+                    System.out.println(name + " (Posicao: " + (tam + i) + ") SIM");
+                    return true;
+                }
+            }
+    
+            // Personagem nao achado
+            System.out.println(name + " NAO");
+            return false;
+        }
+    
+        // INSERIR
+        public void inserir(Personagem x) {
+            String name = x.getName();
+            int hash = 0;
+    
+            for (int i = 0; i < name.length(); i++) {
+                hash += name.charAt(i);
+            }
+    
+            hash = hash % tam;
+    
+            if (elementos[hash] == null) {
+                elementos[hash] = x;
+            } else if (reserva < reservaMAX) {
+                for (int i = 0; i < reservaMAX; i++) {
+                    if (elementos[tam + i] == null) {
+                        elementos[tam + i] = x;
+                        reserva++;
                         break;
-                    }else{
-                        System.out.printf(arquivo[c].getName() + " => ");
-                        arvore.pesquisar(arquivo[c]);
-                    }
                     }
                 }
-            }
-
-            scanner.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (file != null) {
-                try {
-                    file.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            } else {
             }
         }
     }
-
-
+    
     //CLASSE LISTA
-    static class Lista{
+    public static class Lista{
         Celula inicio;
         Celula fim;
         int tam;
@@ -232,13 +277,13 @@ public class Main {
         }
     }
     //CLASSE CELULA
-    static class Celula{
+    public static class Celula{
         Celula prox;
         Celula ant;
         Personagem personagem;
     }
     //CLASSE PERSONAGEM
-    static class Personagem {
+    public static class Personagem {
         private String id;
         private String name;
         private String alternateNames; 
@@ -451,7 +496,7 @@ public class Main {
         return formatoEntrada.parse(dataString);
     }
     //ARVORE
-    static class Arvore{
+    public static class Arvore{
         No raiz;
         public class No {
             public Personagem elemento; // Conteudo do no.
