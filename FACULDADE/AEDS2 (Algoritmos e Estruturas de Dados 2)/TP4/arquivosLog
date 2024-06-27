@@ -5,7 +5,7 @@ import java.io.FileWriter;
         long startTime = System.nanoTime(); long endTime = System.nanoTime();
         long duration = endTime - startTime; // Duração em nanosegundos
          try (FileWriter writer = new FileWriter(nomeDoArquivo)) {
-                writer.write("808586"+"\t"); // Minha matricula
+                writer.write("matriculaCensurada"+"\t"); // Minha matricula
                 writer.write(duration + "\t");
                 writer.write(comparacoes + "\t");
                 
