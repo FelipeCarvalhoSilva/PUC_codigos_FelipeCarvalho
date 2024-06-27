@@ -1,4 +1,6 @@
 
+
+// JAVA
 import java.io.FileWriter;
 
         private static int comparacoes = 0;
@@ -12,3 +14,25 @@ import java.io.FileWriter;
             } catch (IOException e) {
                 
             }
+
+
+// C
+#include <time.h>
+   // Medir o tempo de execução
+    clock_t start_time = clock();
+    clock_t end_time = clock();
+    double duration = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+
+    // Criar e escrever no arquivo matrícula_arvoreBinaria.txt
+    FILE *outputFile = fopen("matrícula_arvoreBinaria.txt", "w");
+    if (outputFile == NULL) {
+        perror("Erro ao criar o arquivo de saída.");
+        return 1;
+    }
+
+    // Escrever a matrícula, o tempo de execução e número de comparações
+    fprintf(outputFile, "matriculaCensurada\t"); // Minha matrícula
+    fprintf(outputFile, "%f\t", duration); // Tempo de execução
+    fprintf(outputFile, "%d\t", comparacoes); // Número de comparações
+
+    fclose(outputFile);
