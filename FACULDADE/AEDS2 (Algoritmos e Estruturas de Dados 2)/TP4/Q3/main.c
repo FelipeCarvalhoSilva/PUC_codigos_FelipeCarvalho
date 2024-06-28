@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <time.h>
 // /tmp/characters.csv
 // C:/Users/Felipe/Desktop/TP's AEDS2/TP3/tmp/characters.csv
 #define FILE_PATH "/tmp/characters.csv"
 
+int comparacoes = 0;
 #define INITIAL_STRING_CAPACITY 32
 #define INITIAL_ARRAY_CAPACITY 5
 #define TABLE_SIZE 21
@@ -676,17 +678,21 @@ void freeTree(TreeNode* root) {
 // Função para pesquisar um nó na árvore
 bool pesquisar(TreeNode* root, char* nome) {
     if (root == NULL) {
+        comparacoes++;
         printf(" NAO\n");
         return false;
     }
     if (strcmp(root->character.name, nome) == 0) {
+        comparacoes++;
         printf(" SIM\n");
         return true;
     }
     if (strcmp(root->character.name, nome) > 0) {
+        comparacoes++;
         printf(" esq");
         return pesquisar(root->left, nome);
     } else {
+        comparacoes++;
         printf(" dir");
         return pesquisar(root->right, nome);
     }
@@ -711,6 +717,7 @@ bool pesquisar(TreeNode* root, char* nome) {
 
 
 int main(void){
+    clock_t start_time = clock();
     FILE *file = fopen(FILE_PATH, "r");  
     if (file == NULL) { 
         perror("File not found exception.");
@@ -786,12 +793,21 @@ if (strcmp(input,"Gibbon")==0) {
             ascii += inputAux[i];
         }
         
-        printf("%s  => raiz",inputAux);
+        printf("%s => raiz",inputAux);
         pesquisar(root,inputAux);
 
         label:
     }
-   
+    // Medir o tempo de execução
+    clock_t end_time = clock();
+    double duration = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+       // Criar e escrever no arquivo matrícula_arvoreBinaria.txt
+    FILE *outputFile = fopen("matrícula_arvoreBinaria.txt", "w");
+    fprintf(outputFile, "Minha matrícula\t"); // Minha matrícula
+    fprintf(outputFile, "%f\t", duration); // Tempo de execução
+    fprintf(outputFile, "%d\t", comparacoes); // Número de comparações
+
+    fclose(outputFile);
 
     return 0;
 }
