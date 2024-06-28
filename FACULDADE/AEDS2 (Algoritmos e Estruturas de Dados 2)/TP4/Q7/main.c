@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <time.h>
 // /tmp/characters.csv
 // C:/Users/Felipe/Desktop/TP's AEDS2/TP3/tmp/characters.csv
 #define FILE_PATH "/tmp/characters.csv"
@@ -10,6 +11,7 @@
 #define INITIAL_ARRAY_CAPACITY 5
 #define TABLE_SIZE 21
 
+int comparacoes = 0;
 typedef struct {
     char *id;
     char *name;
@@ -518,12 +520,13 @@ Character* find_element(HashTable* hash_table, int key, char* input) {
     while (current != NULL) {
         if (current->key == key && strcmp(current->value.name, input) == 0) {
             // Se encontrou um personagem com a mesma chave e nome igual ao input
-            
+            comparacoes++;
             printf(" (pos: %d) SIM\n",index);
             return &current->value;
         }
         current = current->next;
     }
+     comparacoes++;
     printf(" NAO\n");
     return NULL;  // Elemento não encontrado
 }
@@ -540,6 +543,8 @@ void free_hash_table(HashTable* hash_table) {
 }
 
 int main(){
+
+    clock_t start_time = clock();
     FILE *file = fopen(FILE_PATH, "r");  
     if (file == NULL) { 
         perror("File not found exception.");
@@ -563,7 +568,7 @@ int main(){
 
 //INSERE NA TABELA HASH
     while(strcmp(input, "FIM")!=0){
-        scanf("%s",input);
+        scanf(" %[^\r\n]",input);
         if(strcmp(input, "FIM")==0)break;
         // se acha id no characterVec, coloca em inseridos[] um vetor com os personagens que o id bateu com o input
        for(int b=0;b<z;b++){ 
@@ -580,29 +585,38 @@ int main(){
     
     
 input=(char*)malloc(256*sizeof(char));
-     while (strcmp(input, "FIM")!=0) {
-        scanf(" %[^\n]",input);
-        input[strcspn(input, "\n")] = '\0'; // Remove o '\n' do final da string
-        
-        if (strcmp(input, "FIM") == 0) {
-            break;
-        }
-        if (strcmp(input, "FIM\n") == 0) {
+char *inputAux=(char*)malloc(256*sizeof(char));
+   while(strcmp(inputAux, "FIM")!=0) {
+    
+    scanf(" %[^\r\n]", inputAux);
+    
+
+        if (strcmp(inputAux, "FIM") == 0||strcmp(inputAux, "FIM\n") == 0) {
             break;
         }
         
         // Calcula hash
         int ascii = 0;
-        for (int i = 0; i < strlen(input); i++) {
-            ascii += input[i];
+        for (int i = 0; i < strlen(inputAux); i++) {
+            ascii += inputAux[i];
         }
-        
          // Busca na hashtable
-        printf("%s",input);
-        find_element(&hash_table, ascii, input);
+
+        printf("%s",inputAux);
+        find_element(&hash_table, ascii, inputAux);
     }
     free_hash_table(&hash_table);
    
+    // Medir o tempo de execução
+    clock_t end_time = clock();
+    double duration = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+       // Criar e escrever no arquivo matrícula_arvoreBinaria.txt
+    FILE *outputFile = fopen("matrícula_arvoreBinaria.txt", "w");
+    fprintf(outputFile, "Minha matrícula\t"); // Minha matrícula
+    fprintf(outputFile, "%f\t", duration); // Tempo de execução
+    fprintf(outputFile, "%d\t", comparacoes); // Número de comparações
+
+    fclose(outputFile);
 
     return 0;
 }
