@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CRUD de Carros</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 20px;
+        }
+        h2 {
+            color: #333;
+        }
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        input[type="text"], input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h2>Inserir Novo Carro</h2>
+    <form action="/inserirCarro" method="post">
+        <label for="codigo">Código:</label><br>
+        <input type="text" id="codigo" name="codigo"><br>
+        <label for="nome">Nome:</label><br>
+        <input type="text" id="nome" name="nome"><br>
+        <label for="marca">Marca:</label><br>
+        <input type="text" id="marca" name="marca"><br>
+        <label for="nota">Nota:</label><br>
+        <input type="text" id="nota" name="nota"><br>
+        <input type="submit" value="Inserir">
+    </form>
+
+    <h2>Listar Carros</h2>
+    <form action="/listarCarros" method="get">
+        <input type="submit" value="Listar">
+    </form>
+
+    <h2>Atualizar Carro</h2>
+    <form action="/atualizarCarro" method="put">
+        <label for="codigoAtualizar">Código:</label><br>
+        <input type="text" id="codigoAtualizar" name="codigo"><br>
+        <label for="novoNome">Novo Nome:</label><br>
+        <input type="text" id="novoNome" name="nome"><br>
+        <label for="novaMarca">Nova Marca:</label><br>
+        <input type="text" id="novaMarca" name="marca"><br>
+        <label for="novaNota">Nova Nota:</label><br>
+        <input type="text" id="novaNota" name="nota"><br>
+        <input type="submit" value="Atualizar">
+    </form>
+
+    <h2>Excluir Carro</h2>
+    <form action="/excluirCarro" method="delete">
+        <label for="codigoExcluir">Código:</label><br>
+        <input type="text" id="codigoExcluir" name="codigo"><br>
+        <input type="submit" value="Excluir">
+    </form>
+</body>
+</html>
