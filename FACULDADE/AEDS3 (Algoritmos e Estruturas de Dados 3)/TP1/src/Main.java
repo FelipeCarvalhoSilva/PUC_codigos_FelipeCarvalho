@@ -12,23 +12,27 @@ public class Main {
     public static void main(String[] args) {
         String inputCSV = "characters.csv";
         String outputBinary = "characters.bin";
+        int idbin=0;
         try (BufferedReader br = new BufferedReader(new FileReader(inputCSV));
                 FileOutputStream fos = new FileOutputStream(outputBinary);
                 DataOutputStream dos = new DataOutputStream(fos)) {
+                    
             // Pula a primeira linha (cabeçalho)
             br.readLine();
 
             String line;
+            int lastID=0;
+            dos.writeInt(lastID);
             while ((line = br.readLine()) != null) {
-
                 byte[] lineBytes;
                 Personagem personagem = new Personagem();
                 line = line.replaceAll(";;", "; ;").replaceAll("\\[", "{").replaceAll("]", "}");
                 personagem.ler(line);
 
-                dos.writeByte(0); // lapide -> 0 == byte vazio e 47 == '/'
+                dos.writeBoolean(true); // lapide -> false-não é lápide / true-é lápide
                 int tamanho = getTamanhoPersonagem(personagem); // Escreve o tamanho do Personagem
                 dos.writeInt(tamanho);
+                dos.writeInt(idbin++);
                 
                 // id
                 lineBytes = personagem.getId().getBytes("UTF-8");
@@ -100,16 +104,42 @@ public class Main {
                 dos.write(lineBytes);
 
             }
+            
             System.out.println("Arquivo binário criado com sucesso: " + outputBinary);
 
         } catch (IOException e) {
             System.out.println("Ocorreu um erro ao processar os arquivos.");
             e.printStackTrace();
         }
+        try {
+            // Abre o arquivo em modo leitura e escrita
+            RandomAccessFile arquivo = new RandomAccessFile("characters.bin", "rwd");
+            
+            // Define a posição do cabeçalho (por exemplo, início do arquivo)
+            long posicaoCabecalho = 0; // A posição onde o int deve ser escrito
+
+            // Move o ponteiro de leitura/escrita para a posição do cabeçalho
+            arquivo.seek(posicaoCabecalho);
+            
+            // Escreve o int no cabeçalho
+            idbin--;
+            arquivo.writeInt(idbin);
+            
+            // Fecha o arquivo
+            arquivo.close();
+
+            System.out.println("Cabeçalho atualizado com sucesso!");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    
+
+        //COMANDOS CRUD
         Scanner scanner=new Scanner(System.in);
-        System.out.println("COMANDOS:\n1- Create\n2- Read\n3- Update\n4- Delete FIM para terminar o programa.\n");
+        System.out.println("COMANDOS:\n1- Create\n2- Read\n3- Update\n4- Delete\n FIM para terminar o programa.\n");
         String input=scanner.nextLine();
-        //COMANDOS
+        
         while(!input.equals("FIM")){
             
             switch (input) {
@@ -117,7 +147,8 @@ public class Main {
                     
                     break;
                 case "Read":
-                    
+                    System.out.println("\nInsira o id do registro a ser lido:\n");
+                    scanner.nextInt();
                     break;
                 case "Update":
                     
@@ -134,7 +165,9 @@ public class Main {
         String outputCSV = "new_characters.csv";
         convertBinaryToCSV(outputBinary, outputCSV);
         scanner.close();
-    }
+    }// FIM MAIN
+    
+
     private static void convertBinaryToCSV(String inputBinary, String outputCSV) {
         try (FileInputStream fis = new FileInputStream(inputBinary);
              DataInputStream dis = new DataInputStream(fis);
@@ -142,11 +175,14 @@ public class Main {
 
             // Escreve cabeçalho do CSV
             bw.write("id;name;alternate_names;house;ancestry;species;patronus;hogwartsStaff;hogwartsStudent;actorName;alive;dateOfBirth;yearOfBirth;eyeColor;gender;hairColour;wizard\n");
-
+            int ultimoID = dis.readInt(); // lê o ultimo id inserido
+            System.out.println("Último id: "+ultimoID);
+            
+            
             while (dis.available() > 0) {
-                dis.readByte(); // lê lápide
-                int tamanho = dis.readInt(); // lê o tamanho do registro
-
+                System.out.println("Lápide "+dis.readByte());
+                int tamanho=dis.readInt();
+                System.out.println("tamanho registro: "+(tamanho));
                 byte[] data = new byte[tamanho];
                 dis.readFully(data);
                 String linha = new String(data, "UTF-8");
@@ -161,45 +197,61 @@ public class Main {
             e.printStackTrace();
         }
     }
+    //CREATE
+    private static void Create(String inputBinary, String outputCSV){
+
+    }
+    //READ
+    private static void Read(String inputBinary){
+
+    }
+    //UPDATE
+    //DELETE
+
     // Conta quantos bytes o personagem vai usar
     static int getTamanhoPersonagem(Personagem personagem) throws IOException {
+
+        //acomodar id
         int tamanho = 4;
+
         byte[] lineBytes = personagem.getId().getBytes();
-        tamanho += lineBytes.length + 4;
+        tamanho += lineBytes.length ;
         lineBytes = personagem.getName().getBytes();
-        tamanho += lineBytes.length + 4;
+        tamanho += lineBytes.length ;
         lineBytes = personagem.getAlternateNames().getBytes();
-        tamanho += lineBytes.length + 4;
+        tamanho += lineBytes.length ;
         lineBytes = personagem.getHouse().getBytes();
-        tamanho += lineBytes.length + 4;
+        tamanho += lineBytes.length ;
         lineBytes = personagem.getAncestry().getBytes();
-        tamanho += lineBytes.length + 4;
+        tamanho += lineBytes.length ;
         lineBytes = personagem.getSpecies().getBytes();
-        tamanho += lineBytes.length + 4;
+        tamanho += lineBytes.length ;
         lineBytes = personagem.getPatronus().getBytes();
-        tamanho += lineBytes.length + 4;
+        tamanho += lineBytes.length ;
         lineBytes = personagem.getHogwartsStaff().getBytes();
-        tamanho += lineBytes.length + 4;
+        tamanho += lineBytes.length ;
         lineBytes = personagem.getHogwartsStudent().getBytes();
-        tamanho += lineBytes.length + 4;
+        tamanho += lineBytes.length ;
         lineBytes = personagem.getActorName().getBytes();
-        tamanho += lineBytes.length + 4;
+        tamanho += lineBytes.length ;
         lineBytes = personagem.getAlive().getBytes();
-        tamanho += lineBytes.length + 4;
+        tamanho += lineBytes.length ;
         lineBytes = personagem.getDateOfBirth().getBytes();
-        tamanho += lineBytes.length + 4;
+        tamanho += lineBytes.length ;
         String formatString = Integer.toString(personagem.getYearOfBirth());
         lineBytes = formatString.getBytes();
-        tamanho += lineBytes.length + 4;
+        tamanho += lineBytes.length ;
         lineBytes = personagem.getEyeColor().getBytes();
-        tamanho += lineBytes.length + 4;
+        tamanho += lineBytes.length ;
         lineBytes = personagem.getGender().getBytes();
-        tamanho += lineBytes.length + 4;
+        tamanho += lineBytes.length ;
         lineBytes = personagem.getHairColour().getBytes();
-        tamanho += lineBytes.length + 4;
+        tamanho += lineBytes.length ;
         lineBytes = personagem.getWizard().getBytes();
-        tamanho += lineBytes.length + 4;
+        tamanho += lineBytes.length ;
+        System.out.println("tamanaho:"+tamanho);
         return (tamanho);
+       
     }
 
     static class Personagem {
