@@ -1,4 +1,5 @@
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -83,8 +84,10 @@ public class Main {
                 dos.writeUTF(personagem.getAlive());
 
                 // DateOfBirth
-                lineBytes = personagem.getDateOfBirth().getBytes();
-                dos.writeUTF(personagem.getDateOfBirth());
+                // Converte a data para milissegundos desde 1 de janeiro de 1970
+                long timeInMillis = personagem.getDateOfBirth().getTime();
+                lineBytes = ByteBuffer.allocate(Long.BYTES).putLong(timeInMillis).array();
+                dos.write(lineBytes);
 
                 // EyeColor
                 lineBytes = personagem.getEyeColor().getBytes();
@@ -135,6 +138,7 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        
 
         // COMANDOS CRUD
         Scanner scanner = new Scanner(System.in);
@@ -158,6 +162,7 @@ public class Main {
                     System.out.println("Digite o nome: "); // Nome
                     nome = scanner.nextLine();
                     personagemNovo.setName(nome);
+
                     System.out.println("Digite o alternate_names(Ex: Nome1, Nome2): "); // alternate_Names
                     alternate_names += scanner.nextLine();
                     alternate_names += "]";
@@ -182,9 +187,11 @@ public class Main {
                     System.out.println("Digite o species: "); // Species
                     species = scanner.nextLine();
                     personagemNovo.setSpecies(species);
+
                     System.out.println("Digite o patronus: "); // Patronus
                     patronus = scanner.nextLine();
                     personagemNovo.setPatronus(patronus);
+
                     System.out.println("Digite o hogwartsStaff: "); // hogwartsStaff
                     hogwartsStaff = scanner.nextLine();
                     personagemNovo.setHogwartsStaff(hogwartsStaff);
@@ -201,7 +208,7 @@ public class Main {
                     alive = scanner.nextLine();
                     personagemNovo.setAlive(alive);
 
-                    System.out.println("Digite o dateOfBirth: "); // dateOfBirth
+                    System.out.println("Digite o dateOfBirth(formato: dd-MM-yyyy): "); // dateOfBirth
                     dateOfBirth = scanner.nextLine();
                     personagemNovo.setDateOfBirth(dateOfBirth);
 
@@ -226,8 +233,7 @@ public class Main {
                     personagemNovo.setWizard(wizard);
 
                     Create(outputBinary, "new_characters.csv", ++idbin, personagemNovo);
-                    try { // Atualiza cabeçalho
-                          // Abre o arquivo em modo leitura e escrita
+                    try { // Atualiza cabeçalho abre o arquivo em modo leitura e escrita
                         RandomAccessFile arquivo = new RandomAccessFile("characters.bin", "rwd");
                         arquivo.seek(0); // Posiciona o ponteiro no cabeçalho
                         arquivo.writeInt(idbin);// Escreve o int no cabeçalho
@@ -248,9 +254,9 @@ public class Main {
                 case "Update":
                     personagemNovo = new Personagem();
                     System.out.println("Insira o id do registro a ser atualizado:");
-                    int idAtulizar = scanner.nextInt();
-                    scanner.nextLine(); // Consome a nova linha pendente após nextInt()
-
+                    int idAtulizar;
+                    idAtulizar = scanner.nextInt();
+                    scanner.nextLine();
                     // Recebendo informações do personagem que vai ser atualizado
 
                     System.out.println("Digite o id: "); // idString
@@ -260,6 +266,7 @@ public class Main {
                     System.out.println("Digite o nome: "); // Nome
                     nome = scanner.nextLine();
                     personagemNovo.setName(nome);
+
                     System.out.println("Digite o alternate_names(Ex: Nome1, Nome2): "); // alternate_Names
                     alternate_names += scanner.nextLine();
                     alternate_names += "]";
@@ -284,9 +291,11 @@ public class Main {
                     System.out.println("Digite o species: "); // Species
                     species = scanner.nextLine();
                     personagemNovo.setSpecies(species);
+
                     System.out.println("Digite o patronus: "); // Patronus
                     patronus = scanner.nextLine();
                     personagemNovo.setPatronus(patronus);
+
                     System.out.println("Digite o hogwartsStaff: "); // hogwartsStaff
                     hogwartsStaff = scanner.nextLine();
                     personagemNovo.setHogwartsStaff(hogwartsStaff);
@@ -303,7 +312,7 @@ public class Main {
                     alive = scanner.nextLine();
                     personagemNovo.setAlive(alive);
 
-                    System.out.println("Digite o dateOfBirth: "); // dateOfBirth
+                    System.out.println("Digite o dateOfBirth(formato: dd-MM-yyyy): "); // dateOfBirth
                     dateOfBirth = scanner.nextLine();
                     personagemNovo.setDateOfBirth(dateOfBirth);
 
@@ -344,8 +353,8 @@ public class Main {
         scanner.close();
     }// FIM MAIN
 
-    // Ordenação Externa
-    private static void ordenacaoExterna(String inputBinary){
+     // Ordenação Externa
+     private static void ordenacaoExterna(String inputBinary){
         String inputCSV = "characters.csv";
         String outputBinary = "ordered_characters.bin";
         try (BufferedReader br = new BufferedReader(new FileReader(inputCSV));
@@ -357,275 +366,121 @@ public class Main {
                     e.printStackTrace();
                 }
     }
-    
+
     private static void convertBinaryToCSV(String inputBinary, String outputCSV) {
-        try (FileInputStream fis = new FileInputStream(inputBinary);
-                DataInputStream dis = new DataInputStream(fis);
-                BufferedWriter bw = new BufferedWriter(new FileWriter(outputCSV))) {
+    try (FileInputStream fis = new FileInputStream(inputBinary);
+         DataInputStream dis = new DataInputStream(fis);
+         BufferedWriter bw = new BufferedWriter(new FileWriter(outputCSV))) {
 
-            // Escreve cabeçalho do CSV
-            bw.write(
-                    "idSequencial;idString;nome;alternate_names;house;ancestry;species;patronus;hogwartsStaff;hogwartsStudent;actorName;alive;dateOfBirth;eyeColor;gender;hairColour;wizard;data;ano\n");
+        // Escreve cabeçalho do CSV
+        bw.write("idSequencial;idString;nome;alternate_names;house;ancestry;species;patronus;hogwartsStaff;hogwartsStudent;actorName;alive;dateOfBirth;eyeColor;gender;hairColour;wizard;ano\n");
 
-            // Lê o último ID inserido
-            int ultimoID = dis.readInt();
-            System.out.println("Último id: " + ultimoID);
+        // Lê o último ID inserido
+        int ultimoID = dis.readInt();
+        System.out.println("Último id: " + ultimoID);
 
-            while (dis.available() > 0) {
-                String aux;
+        while (dis.available() > 0) {
+            String aux;
 
-                // Verifica se é um registro lápide e escreve 'X' se for o caso
-                if (dis.readByte() == 1) {
-
-                // Mostra que registro foi deletado
+            // Verifica se é um registro lápide
+            boolean isLapide = dis.readBoolean();
+            if (isLapide) {
                 bw.write('X');
                 bw.newLine();
+                dis.skipBytes(dis.readInt()); // Pula os bytes do registro se for lápide
+            } else {
                 // Lê o tamanho do registro
                 int tamanho = dis.readInt();
-                System.out.println("tamanho registro: " + tamanho);
+                System.out.println("Tamanho do registro: " + tamanho);
 
-                // Lê o ID como um inteiro
+                // Lê o ID
                 int id = dis.readInt();
-
-
-                // id
-                int tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                byte[] data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-
-                // nome
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-
-                // alternate_names
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-
-                // house
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                // ancestry
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                // species
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-
-                // patronus
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                // hogwartsStaff
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-
-                // hogwartsStudent
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                // actorName
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                // alive
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                // dateOfBirth
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-
-                // eyeColor
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-
-                // gender
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-
-                // hairColour
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-
-                // wizard
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-
-                int ano = dis.readInt(); // Lê anoNascimento
-                }else{
-                // Lê o tamanho do registro
-                int tamanho = dis.readInt();
-                System.out.println("tamanho registro: " + tamanho);
-
-                // Lê o ID como um inteiro
-                int id = dis.readInt();
-                System.out.println("ID: " + id);
-
-                // Escreve o ID no CSV
                 bw.write(id + ";");
 
-                // id
-                int tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                byte[] data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                bw.write(aux + ";"); // Escreve no CSV 
+                // Lê e escreve o ID do personagem
+                aux = dis.readUTF();
+                bw.write(aux + ";");
 
-                // nome
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                bw.write(aux + ";"); // Escreve no CSV 
+                // Lê e escreve o nome do personagem
+                aux = dis.readUTF();
+                bw.write(aux + ";");
 
-                // alternate_names
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                bw.write(aux + ";"); // Escreve no CSV 
+                // Lê e escreve os nomes alternativos
+                aux = dis.readUTF();
+                bw.write(aux + ";");
 
-                // house
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                bw.write(aux + ";"); // Escreve no CSV 
+                // Lê e escreve a casa
+                aux = dis.readUTF();
+                bw.write(aux + ";");
 
-                // ancestry
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                bw.write(aux + ";"); // Escreve no CSV 
+                // Lê e escreve a ascendência
+                aux = dis.readUTF();
+                bw.write(aux + ";");
 
-                // species
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                bw.write(aux + ";"); // Escreve no CSV 
+                // Lê e escreve a espécie
+                aux = dis.readUTF();
+                bw.write(aux + ";");
 
-                // patronus
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                bw.write(aux + ";"); // Escreve no CSV 
+                // Lê e escreve o patrono
+                aux = dis.readUTF();
+                bw.write(aux + ";");
 
-                // hogwartsStaff
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                bw.write(aux + ";"); // Escreve no CSV 
+                // Lê e escreve se é funcionário de Hogwarts
+                aux = dis.readUTF();
+                bw.write(aux + ";");
 
-                // hogwartsStudent
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                bw.write(aux + ";"); // Escreve no CSV 
+                // Lê e escreve se é estudante de Hogwarts
+                aux = dis.readUTF();
+                bw.write(aux + ";");
 
-                // actorName
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                bw.write(aux + ";"); // Escreve no CSV 
+                // Lê e escreve o nome do ator
+                aux = dis.readUTF();
+                bw.write(aux + ";");
 
-                // alive
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                bw.write(aux + ";"); // Escreve no CSV 
+                // Lê e escreve se está vivo
+                aux = dis.readUTF();
+                bw.write(aux + ";");
 
-                // dateOfBirth
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                bw.write(aux + ";"); // Escreve no CSV 
+                // Lê e escreve a data de nascimento
+                long dateOfBirthMillis = dis.readLong();
+                Date dateOfBirth = new Date(dateOfBirthMillis);
+                bw.write(new SimpleDateFormat("yyyy-MM-dd").format(dateOfBirth) + ";");
 
-                // eyeColor
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                bw.write(aux + ";"); // Escreve no CSV 
+                // Lê e escreve a cor dos olhos
+                aux = dis.readUTF();
+                bw.write(aux + ";");
 
-                // gender
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                bw.write(aux + ";"); // Escreve no CSV 
+                // Lê e escreve o gênero
+                aux = dis.readUTF();
+                bw.write(aux + ";");
 
-                // hairColour
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                bw.write(aux + ";"); // Escreve no CSV 
+                // Lê e escreve a cor do cabelo
+                aux = dis.readUTF();
+                bw.write(aux + ";");
 
-                // wizard
-                tamanhoDados = dis.readUnsignedShort(); // Lê os dados do registro
-                data = new byte[tamanhoDados]; // Lê quantos bytes precisa ser lido
-                dis.readFully(data); // Lê os bytes
-                aux = new String(data, StandardCharsets.UTF_8); // Converte para string os dados lidos
-                bw.write(aux); // Escreve no CSV 
+                // Lê e escreve se é bruxo
+                aux = dis.readUTF();
+                bw.write(aux + ";");
 
-                int ano = dis.readInt(); // Lê anoNascimento
-                bw.write(";" + ano); // Escreve no CSV
+                // Lê e escreve o ano de nascimento
+                int ano = dis.readInt();
+                bw.write(ano + ";");
 
                 bw.newLine();
             }
-            }
-
-            System.out.println("Arquivo CSV criado com sucesso: " + outputCSV);
-
-        } catch (IOException e) {
-            System.out.println("Ocorreu um erro ao ler o arquivo binário.");
-            e.printStackTrace();
         }
+    } catch (IOException e) {
+        e.printStackTrace();
     }
+}
 
     // CREATE
     private static void Create(String inputBinary, String outputCSV, int id, Personagem personagem) throws IOException {
         RandomAccessFile raf = new RandomAccessFile("characters.bin", "rw");
 
         byte[] lineBytes;
-        byte[] lineBytesAux;
 
-        raf.seek(raf.length()); // posiciona o ponteiro no fim do arquivo 
+        raf.seek(raf.length()); // posiciona o ponteiro no fim do arquivo
         FileDescriptor fd = raf.getFD();
         FileOutputStream fos = new FileOutputStream(fd);
         DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(fos));
@@ -681,8 +536,10 @@ public class Main {
         dos.writeUTF(personagem.getAlive());
 
         // DateOfBirth
-        lineBytes = personagem.getDateOfBirth().getBytes();
-        dos.writeUTF(personagem.getDateOfBirth());
+        // Converte a data para milissegundos desde 1 de janeiro de 1970
+        long timeInMillis = personagem.getDateOfBirth().getTime();
+        lineBytes = ByteBuffer.allocate(Long.BYTES).putLong(timeInMillis).array();
+        dos.write(lineBytes);
 
         // EyeColor
         lineBytes = personagem.getEyeColor().getBytes();
@@ -702,8 +559,9 @@ public class Main {
 
         // YearOfBirth
         dos.writeInt(personagem.getYearOfBirth());
-        raf.close();
         dos.close();
+
+        raf.close();
     }
 
     // READ
@@ -722,9 +580,9 @@ public class Main {
                 // Lê o ID do registro
                 int idAtual = dis.readInt();
 
-                // idString                
-                int tamanhoDados = dis.readUnsignedShort();// Lê os dados do registro
-                byte[] data = new byte[tamanhoDados];
+                // idString
+                int tamanhoDados = dis.readUnsignedShort();// Lê o numero de bytes que o registro ocupa
+                byte[] data = new byte[tamanhoDados];//Lê o numero exato de bytes
                 dis.readFully(data);
                 aux = new String(data, StandardCharsets.UTF_8);
                 line += aux;
@@ -811,10 +669,10 @@ public class Main {
                 line += ";";
 
                 // dateOfBirth
-                tamanhoDados = dis.readUnsignedShort();
-                data = new byte[tamanhoDados];
-                dis.readFully(data);
-                aux = new String(data, StandardCharsets.UTF_8);
+                //transforma data em string para facilitar a leitura no printf
+                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+                Date dataNascimento = new Date(dis.readLong());
+                aux = sdf.format(dataNascimento);
                 line += aux;
                 line += ";";
 
@@ -885,26 +743,449 @@ public class Main {
                 byte lapide = raf.readByte();
                 int tamanho = raf.readInt();
                 int idAtual = raf.readInt();
+                String aux;
 
                 // Salva a posição da lapide
                 long posLapide = raf.getFilePointer() - 9;
 
                 if (lapide == 0 && idAtual == id) {
-                    tamanhoPersonagemNovo = getTamanhoPersonagem(personagemNovo); // Ver tamanho do personagem atualizado
+                    tamanhoPersonagemNovo = getTamanhoPersonagem(personagemNovo); // Ver tamanho do personagem
+                                                                                  // atualizado
                     if (tamanhoPersonagemNovo > tamanho) { // Se personagem atualizado > personagem desatualizado
 
                         // Posiciona o ponteiro no início da lápide e escreve 1
                         raf.seek(posLapide);
                         raf.writeByte(1);
-                        
-                        Create(inputBinary, "new_characters.csv", id, personagemNovo);// Cria um novo personagem                        
-                        raf.seek(raf.length());                        
+
+                        Create(inputBinary, "new_characters.csv", id, personagemNovo);// Cria um novo personagem
+                        raf.seek(raf.length());
                         registroEncontrado = true;
 
                         System.out.println("Atualizado com sucesso.");
                         raf.close();
                         break; // Sai do loop após encontrar e marcar o registro
-                    } else if (tamanhoPersonagemNovo <= tamanho) { // Se personagem atualizado <= personagem desatualizado
+                    } else if (tamanhoPersonagemNovo <= tamanho) {// Se personagem atualizado <= personagem
+                                                                  // desatualizado
+                        byte[] lineBytes;
+                        posicaoAtual = posLapide + 9;
+                        String idString, nome, alternate_names, house, ancestry, species, patronus, hogwartsStaff,hogwartsStudent, actorName, alive;
+                        long dateMili;
+                        Date dateOfBirth;
+                        String eyeColor, gender, hairColour, wizard;
+                        int yearOfBirth;
+
+                        posicaoAtual = raf.getFilePointer();
+                        // id
+                        int tamanhoDados = raf.readUnsignedShort();  // lê dois bytes e retorna um int
+
+                        // lê o numero de bytes do readUnsignedShort
+                        lineBytes = new byte[tamanhoDados]; 
+                        raf.readFully(lineBytes); 
+                        idString=new String(lineBytes, "UTF-8");                        
+                        
+                        if (idString.length() > personagemNovo.getId().length()
+                                && idString.compareTo(personagemNovo.getId()) != 0) {
+                            raf.seek(posLapide);
+                            raf.writeByte(1);
+                            Create(inputBinary, "new_characters.csv", id, personagemNovo);
+                            break;
+                        } else if (idString.length() <= personagemNovo.getId().length()
+                                && idString.compareTo(personagemNovo.getId()) != 0) {
+                            raf.seek(posicaoAtual);                            
+                            FileDescriptor fd = raf.getFD();
+                            FileOutputStream fos = new FileOutputStream(fd);
+                            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(fos));
+                            dos.writeUTF(idString);
+                            dos.close();
+                            break;
+                        }
+                        
+                        posicaoAtual = raf.getFilePointer();
+                        // Name
+                        tamanhoDados = raf.readUnsignedShort();  // lê dois bytes e retorna um int
+
+                        // lê o numero de bytes do readUnsignedShort
+                        lineBytes = new byte[tamanhoDados]; 
+                        raf.readFully(lineBytes); 
+                        nome=new String(lineBytes, "UTF-8");                        
+                        
+                        if (nome.length() > personagemNovo.getName().length()
+                                && nome.compareTo(personagemNovo.getName()) != 0) {
+                            raf.seek(posLapide);
+                            raf.writeByte(1);
+                            Create(inputBinary, "new_characters.csv", id, personagemNovo);
+                            break;
+                        } else if (nome.length() <= personagemNovo.getName().length()
+                                && nome.compareTo(personagemNovo.getName()) != 0) {
+                            raf.seek(posicaoAtual);                            
+                            FileDescriptor fd = raf.getFD();
+                            FileOutputStream fos = new FileOutputStream(fd);
+                            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(fos));
+                            dos.writeUTF(nome);
+                            dos.close();
+                            break;
+                        }
+
+                        posicaoAtual = raf.getFilePointer();
+                        // AlternateNames
+                        tamanhoDados = raf.readUnsignedShort();  // lê dois bytes e retorna um int
+
+                        // lê o numero de bytes do readUnsignedShort
+                        lineBytes = new byte[tamanhoDados]; 
+                        raf.readFully(lineBytes); 
+                        alternate_names=new String(lineBytes, "UTF-8");                        
+                        
+                        if (alternate_names.length() > personagemNovo.getAlternateNames().length()
+                                && alternate_names.compareTo(personagemNovo.getAlternateNames()) != 0) {
+                            raf.seek(posLapide);
+                            raf.writeByte(1);
+                            Create(inputBinary, "new_characters.csv", id, personagemNovo);
+                            break;
+                        } else if (alternate_names.length() <= personagemNovo.getAlternateNames().length()
+                                && alternate_names.compareTo(personagemNovo.getAlternateNames()) != 0) {
+                            raf.seek(posicaoAtual);                            
+                            FileDescriptor fd = raf.getFD();
+                            FileOutputStream fos = new FileOutputStream(fd);
+                            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(fos));
+                            dos.writeUTF(alternate_names);
+                            dos.close();
+                            break;
+                        }
+                        
+                        posicaoAtual = raf.getFilePointer();
+                        // House
+                        tamanhoDados = raf.readUnsignedShort();  // lê dois bytes e retorna um int
+
+                        // lê o numero de bytes do readUnsignedShort
+                        lineBytes = new byte[tamanhoDados]; 
+                        raf.readFully(lineBytes); 
+                        house=new String(lineBytes, "UTF-8");                        
+                        
+                        if (house.length() > personagemNovo.getHouse().length()
+                                && house.compareTo(personagemNovo.getHouse()) != 0) {
+                            raf.seek(posLapide);
+                            raf.writeByte(1);
+                            Create(inputBinary, "new_characters.csv", id, personagemNovo);
+                            break;
+                        } else if (house.length() <= personagemNovo.getHouse().length()
+                                && house.compareTo(personagemNovo.getHouse()) != 0) {
+                            raf.seek(posicaoAtual);                            
+                            FileDescriptor fd = raf.getFD();
+                            FileOutputStream fos = new FileOutputStream(fd);
+                            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(fos));
+                            dos.writeUTF(house);
+                            dos.close();
+                            break;
+                        }
+                        
+                        posicaoAtual = raf.getFilePointer();
+                        // Ancestry
+                        tamanhoDados = raf.readUnsignedShort();  // lê dois bytes e retorna um int
+
+                        // lê o numero de bytes do readUnsignedShort
+                        lineBytes = new byte[tamanhoDados]; 
+                        raf.readFully(lineBytes); 
+                        ancestry=new String(lineBytes, "UTF-8");                        
+                        
+                        if (ancestry.length() > personagemNovo.getAncestry().length()
+                                && ancestry.compareTo(personagemNovo.getAncestry()) != 0) {
+                            raf.seek(posLapide);
+                            raf.writeByte(1);
+                            Create(inputBinary, "new_characters.csv", id, personagemNovo);
+                            break;
+                        } else if (ancestry.length() <= personagemNovo.getAncestry().length()
+                                && ancestry.compareTo(personagemNovo.getAncestry()) != 0) {
+                            raf.seek(posicaoAtual);                            
+                            FileDescriptor fd = raf.getFD();
+                            FileOutputStream fos = new FileOutputStream(fd);
+                            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(fos));
+                            dos.writeUTF(ancestry);
+                            dos.close();
+                            break;
+                        }
+                        
+                        posicaoAtual = raf.getFilePointer();
+                        // Species
+                        tamanhoDados = raf.readUnsignedShort();  // lê dois bytes e retorna um int
+
+                        // lê o numero de bytes do readUnsignedShort
+                        lineBytes = new byte[tamanhoDados]; 
+                        raf.readFully(lineBytes); 
+                        species=new String(lineBytes, "UTF-8");                        
+                        
+                        if (species.length() > personagemNovo.getSpecies().length()
+                                && species.compareTo(personagemNovo.getSpecies()) != 0) {
+                            raf.seek(posLapide);
+                            raf.writeByte(1);
+                            Create(inputBinary, "new_characters.csv", id, personagemNovo);
+                            break;
+                        } else if (species.length() <= personagemNovo.getSpecies().length()
+                                && species.compareTo(personagemNovo.getSpecies()) != 0) {
+                            raf.seek(posicaoAtual);                            
+                            FileDescriptor fd = raf.getFD();
+                            FileOutputStream fos = new FileOutputStream(fd);
+                            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(fos));
+                            dos.writeUTF(species);
+                            dos.close();
+                            break;
+                        }
+                        
+                        posicaoAtual = raf.getFilePointer();
+                        // Patronus
+                        tamanhoDados = raf.readUnsignedShort();  // lê dois bytes e retorna um int
+
+                        // lê o numero de bytes do readUnsignedShort
+                        lineBytes = new byte[tamanhoDados]; 
+                        raf.readFully(lineBytes); 
+                        patronus=new String(lineBytes, "UTF-8");                        
+                        
+                        if (patronus.length() > personagemNovo.getPatronus().length()
+                                && patronus.compareTo(personagemNovo.getPatronus()) != 0) {
+                            raf.seek(posLapide);
+                            raf.writeByte(1);
+                            Create(inputBinary, "new_characters.csv", id, personagemNovo);
+                            break;
+                        } else if (patronus.length() <= personagemNovo.getPatronus().length()
+                                && patronus.compareTo(personagemNovo.getPatronus()) != 0) {
+                            raf.seek(posicaoAtual);                            
+                            FileDescriptor fd = raf.getFD();
+                            FileOutputStream fos = new FileOutputStream(fd);
+                            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(fos));
+                            dos.writeUTF(patronus);
+                            dos.close();
+                            break;
+                        }
+
+                        posicaoAtual = raf.getFilePointer();
+                        // HogwartsStaff
+                        tamanhoDados = raf.readUnsignedShort();  // lê dois bytes e retorna um int
+
+                        // lê o numero de bytes do readUnsignedShort
+                        lineBytes = new byte[tamanhoDados]; 
+                        raf.readFully(lineBytes); 
+                        hogwartsStaff=new String(lineBytes, "UTF-8");                        
+                        
+                        if (hogwartsStaff.length() > personagemNovo.getHogwartsStaff().length()
+                                && hogwartsStaff.compareTo(personagemNovo.getHogwartsStaff()) != 0) {
+                            raf.seek(posLapide);
+                            raf.writeByte(1);
+                            Create(inputBinary, "new_characters.csv", id, personagemNovo);
+                            break;
+                        } else if (hogwartsStaff.length() <= personagemNovo.getHogwartsStaff().length()
+                                && hogwartsStaff.compareTo(personagemNovo.getHogwartsStaff()) != 0) {
+                            raf.seek(posicaoAtual);                            
+                            FileDescriptor fd = raf.getFD();
+                            FileOutputStream fos = new FileOutputStream(fd);
+                            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(fos));
+                            dos.writeUTF(hogwartsStaff);
+                            dos.close();
+                            break;
+                        }
+
+                        posicaoAtual = raf.getFilePointer();
+                        // HogwartsStudent
+                        tamanhoDados = raf.readUnsignedShort();  // lê dois bytes e retorna um int
+
+                        // lê o numero de bytes do readUnsignedShort
+                        lineBytes = new byte[tamanhoDados]; 
+                        raf.readFully(lineBytes); 
+                        hogwartsStudent=new String(lineBytes, "UTF-8");                        
+                        
+                        if (hogwartsStudent.length() > personagemNovo.getHogwartsStudent().length()
+                                && hogwartsStudent.compareTo(personagemNovo.getHogwartsStudent()) != 0) {
+                            raf.seek(posLapide);
+                            raf.writeByte(1);
+                            Create(inputBinary, "new_characters.csv", id, personagemNovo);
+                            break;
+                        } else if (hogwartsStudent.length() <= personagemNovo.getHogwartsStudent().length()
+                                && hogwartsStudent.compareTo(personagemNovo.getHogwartsStudent()) != 0) {
+                            raf.seek(posicaoAtual);                            
+                            FileDescriptor fd = raf.getFD();
+                            FileOutputStream fos = new FileOutputStream(fd);
+                            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(fos));
+                            dos.writeUTF(hogwartsStudent);
+                            dos.close();
+                            break;
+                        }
+
+                        posicaoAtual = raf.getFilePointer();
+                        // ActorName
+                        tamanhoDados = raf.readUnsignedShort();  // lê dois bytes e retorna um int
+
+                        // lê o numero de bytes do readUnsignedShort
+                        lineBytes = new byte[tamanhoDados]; 
+                        raf.readFully(lineBytes); 
+                        actorName=new String(lineBytes, "UTF-8");                        
+                        
+                        if (actorName.length() > personagemNovo.getActorName().length()
+                                && actorName.compareTo(personagemNovo.getActorName()) != 0) {
+                            raf.seek(posLapide);
+                            raf.writeByte(1);
+                            Create(inputBinary, "new_characters.csv", id, personagemNovo);
+                            break;
+                        } else if (actorName.length() <= personagemNovo.getActorName().length()
+                                && actorName.compareTo(personagemNovo.getActorName()) != 0) {
+                            raf.seek(posicaoAtual);                            
+                            FileDescriptor fd = raf.getFD();
+                            FileOutputStream fos = new FileOutputStream(fd);
+                            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(fos));
+                            dos.writeUTF(actorName);
+                            dos.close();
+                            break;
+                        }
+
+                        posicaoAtual = raf.getFilePointer();
+                        // Alive
+                        tamanhoDados = raf.readUnsignedShort();  // lê dois bytes e retorna um int
+
+                        // lê o numero de bytes do readUnsignedShort
+                        lineBytes = new byte[tamanhoDados]; 
+                        raf.readFully(lineBytes); 
+                        alive=new String(lineBytes, "UTF-8");                        
+                        
+                        if (alive.length() > personagemNovo.getAlive().length()
+                                && alive.compareTo(personagemNovo.getAlive()) != 0) {
+                            raf.seek(posLapide);
+                            raf.writeByte(1);
+                            Create(inputBinary, "new_characters.csv", id, personagemNovo);
+                            break;
+                        } else if (alive.length() <= personagemNovo.getAlive().length()
+                                && alive.compareTo(personagemNovo.getAlive()) != 0) {
+                            raf.seek(posicaoAtual);                            
+                            FileDescriptor fd = raf.getFD();
+                            FileOutputStream fos = new FileOutputStream(fd);
+                            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(fos));
+                            dos.writeUTF(alive);
+                            dos.close();
+                            break;
+                        }
+
+                        posicaoAtual = raf.getFilePointer();
+                        // dateOfBirth
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+                        dateMili = raf.readLong();
+                        dateOfBirth = new Date(dateMili);
+
+                        // Convertendo data pra string para facilitar comparacao
+                        aux = sdf.format(dateOfBirth);
+                        String aux1=sdf.format(personagemNovo.getDateOfBirth());
+                        if (aux.compareTo(aux1) != 0) {
+                            raf.writeLong(dateMili);;
+                        }
+
+                        posicaoAtual = raf.getFilePointer();
+                        // EyeColor
+                        tamanhoDados = raf.readUnsignedShort();  // lê dois bytes e retorna um int
+
+                        // lê o numero de bytes do readUnsignedShort
+                        lineBytes = new byte[tamanhoDados]; 
+                        raf.readFully(lineBytes); 
+                        eyeColor=new String(lineBytes, "UTF-8");                        
+                        
+                        if (eyeColor.length() > personagemNovo.getEyeColor().length()
+                                && eyeColor.compareTo(personagemNovo.getEyeColor()) != 0) {
+                            raf.seek(posLapide);
+                            raf.writeByte(1);
+                            Create(inputBinary, "new_characters.csv", id, personagemNovo);
+                            break;
+                        } else if (eyeColor.length() <= personagemNovo.getEyeColor().length()
+                                && eyeColor.compareTo(personagemNovo.getEyeColor()) != 0) {
+                            raf.seek(posicaoAtual);                            
+                            FileDescriptor fd = raf.getFD();
+                            FileOutputStream fos = new FileOutputStream(fd);
+                            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(fos));
+                            dos.writeUTF(eyeColor);
+                            dos.close();
+                            break;
+                        }
+
+                        posicaoAtual = raf.getFilePointer();
+                        // Gender
+                        tamanhoDados = raf.readUnsignedShort();  // lê dois bytes e retorna um int
+
+                        // lê o numero de bytes do readUnsignedShort
+                        lineBytes = new byte[tamanhoDados]; 
+                        raf.readFully(lineBytes); 
+                        gender=new String(lineBytes, "UTF-8");                        
+                        
+                        if (gender.length() > personagemNovo.getGender().length()
+                                && gender.compareTo(personagemNovo.getGender()) != 0) {
+                            raf.seek(posLapide);
+                            raf.writeByte(1);
+                            Create(inputBinary, "new_characters.csv", id, personagemNovo);
+                            break;
+                        } else if (gender.length() <= personagemNovo.getGender().length()
+                                && gender.compareTo(personagemNovo.getGender()) != 0) {
+                            raf.seek(posicaoAtual);                            
+                            FileDescriptor fd = raf.getFD();
+                            FileOutputStream fos = new FileOutputStream(fd);
+                            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(fos));
+                            dos.writeUTF(gender);
+                            dos.close();
+                            break;
+                        }
+                        
+                        posicaoAtual = raf.getFilePointer();
+                        // HairColour
+                        tamanhoDados = raf.readUnsignedShort();  // lê dois bytes e retorna um int
+
+                        // lê o numero de bytes do readUnsignedShort
+                        lineBytes = new byte[tamanhoDados]; 
+                        raf.readFully(lineBytes); 
+                        hairColour=new String(lineBytes, "UTF-8");                        
+                        
+                        if (hairColour.length() > personagemNovo.getHairColour().length()
+                                && hairColour.compareTo(personagemNovo.getHairColour()) != 0) {
+                            raf.seek(posLapide);
+                            raf.writeByte(1);
+                            Create(inputBinary, "new_characters.csv", id, personagemNovo);
+                            break;
+                        } else if (hairColour.length() <= personagemNovo.getHairColour().length()
+                                && hairColour.compareTo(personagemNovo.getHairColour()) != 0) {
+                            raf.seek(posicaoAtual);                            
+                            FileDescriptor fd = raf.getFD();
+                            FileOutputStream fos = new FileOutputStream(fd);
+                            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(fos));
+                            dos.writeUTF(hairColour);
+                            dos.close();
+                            break;
+                        }
+                        
+                        posicaoAtual = raf.getFilePointer();
+                        // Wizard
+                        tamanhoDados = raf.readUnsignedShort();  // lê dois bytes e retorna um int
+
+                        // lê o numero de bytes do readUnsignedShort
+                        lineBytes = new byte[tamanhoDados]; 
+                        raf.readFully(lineBytes); 
+                        wizard=new String(lineBytes, "UTF-8");                        
+                        
+                        if (wizard.length() > personagemNovo.getWizard().length()
+                                && wizard.compareTo(personagemNovo.getWizard()) != 0) {
+                            raf.seek(posLapide);
+                            raf.writeByte(1);
+                            Create(inputBinary, "new_characters.csv", id, personagemNovo);
+                            break;
+                        } else if (wizard.length() <= personagemNovo.getWizard().length()
+                                && wizard.compareTo(personagemNovo.getWizard()) != 0) {
+                            raf.seek(posicaoAtual);                            
+                            FileDescriptor fd = raf.getFD();
+                            FileOutputStream fos = new FileOutputStream(fd);
+                            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(fos));
+                            dos.writeUTF(wizard);
+                            dos.close();
+                            break;
+                        }
+
+                        yearOfBirth = raf.readInt();
+                        if(yearOfBirth!=personagemNovo.getYearOfBirth()){
+                            FileDescriptor fd = raf.getFD();
+                            FileOutputStream fos = new FileOutputStream(fd);
+                            DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(fos));
+                            dos.writeInt(yearOfBirth);
+                            dos.close();
+                            break;
+                        }
 
                     }
                 }
@@ -912,7 +1193,7 @@ public class Main {
                 posicaoAtual = posLapide + 1;
                 raf.seek(posicaoAtual);
             }
-            raf.close();
+
             if (!registroEncontrado) {
                 System.out.println("Registro não encontrado.");
             }
@@ -947,8 +1228,7 @@ public class Main {
                     raf.writeByte(1);
 
                     registroEncontrado = true;
-                    raf.close();
-                    
+
                     System.out.println("Registro excluido.");
                     break; // Sai do loop após encontrar e marcar o registro
                 }
@@ -1007,10 +1287,9 @@ public class Main {
         lineBytes = personagem.getAlive().getBytes();
         tamanho += lineBytes.length + 2;
 
-        lineBytes = personagem.getDateOfBirth().getBytes();
-        tamanho += lineBytes.length + 2;
+        tamanho += 8; // dateOfBirth
 
-        tamanho += 4;
+        tamanho += 4; // yearOfBirth
 
         lineBytes = personagem.getEyeColor().getBytes();
         tamanho += lineBytes.length + 2;
@@ -1152,10 +1431,8 @@ public class Main {
             return alive;
         }
 
-        public String getDateOfBirth() {
-            SimpleDateFormat formatoSaida = new SimpleDateFormat("dd-MM-yyyy");
-            String dataFormatada = formatoSaida.format(dateOfBirth);
-            return dataFormatada;
+        public Date getDateOfBirth() {
+            return dateOfBirth;
         }
 
         public int getYearOfBirth() {
@@ -1284,7 +1561,7 @@ public class Main {
             try {
                 this.dateOfBirth = formato.parse(tempString);
             } catch (ParseException e) {
-
+                System.err.println("Erro ao inserir data nascimento.");
             }
         }
 
