@@ -1,17 +1,12 @@
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Year;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
-import java.text.Normalizer;
-
 public class Main {
     public static void main(String[] args) throws IOException {
         String inputCSV = "characters.csv";
@@ -827,61 +822,96 @@ public class Main {
 
     // UPDATE
     private static void Update(String inputBinary, int id, Personagem personagemNovo) throws IOException {
-        int tamanhoPersonagemNovo = getTamanhoPersonagem(personagemNovo);
-        
-        try (RandomAccessFile raf = new RandomAccessFile(inputBinary, "rw")) {
+        int tamanhoPersonagemNovo = 0;
+        try (RandomAccessFile raf = new RandomAccessFile(inputBinary, "rw")) {// ; Abre para leitura e escrita
             // Lê o ultimo ID
             raf.readInt();
-            
+
             long posicaoAtual = raf.getFilePointer();
             boolean registroEncontrado = false;
-            
+
             while (posicaoAtual < raf.length()) {
                 byte lapide = raf.readByte();
                 int tamanho = raf.readInt();
                 int idAtual = raf.readInt();
-                
+                String aux;
+
+                // Salva a posição da lapide
                 long posLapide = raf.getFilePointer() - 9;
-    
+
                 if (lapide == 0 && idAtual == id) {
-                    if (tamanhoPersonagemNovo <= tamanho) {
-                        // Atualizar no mesmo local
-                        raf.seek(posLapide);
-                        raf.writeByte(1); // Marca como lápide
-                        
-                        // Atualiza o registro na mesma posição
-                        raf.seek(posLapide + 1);
-                        escreverRegistro(raf, personagemNovo,id);
-                        
-                        System.out.println("Atualizado com sucesso.");
-                    } else {
-                        // Marca o registro antigo como lápide e adiciona o novo ao final
-                        raf.seek(posLapide);
-                        raf.writeByte(1); // Marca como lápide
-                        
-                        // Adiciona o novo registro no final
-                        raf.seek(raf.length());
-                        escreverRegistro(raf, personagemNovo,id);
-                        
-                        System.out.println("Registro substituído por um novo.");
-                    }
                     
-                    registroEncontrado = true;
-                    break;
+                    tamanhoPersonagemNovo = getTamanhoPersonagem(personagemNovo); // Ver tamanho do personagem
+                                                                                  // atualizado
+                    if (tamanhoPersonagemNovo > tamanho || tamanhoPersonagemNovo < tamanho) { // Se personagem
+                                                                                              // atualizado > personagem
+                                                                                              // desatualizado
+
+                        // Posiciona o ponteiro no início da lápide e escreve 1
+                        raf.seek(posLapide);
+                        raf.writeByte(1);
+
+                        Create(inputBinary, "new_characters.csv", id, personagemNovo);// Cria um novo personagem
+                        raf.seek(raf.length());
+                        registroEncontrado = true;
+
+                        System.out.println("Atualizado com sucesso.");
+                        raf.close();
+                        break; // Sai do loop após encontrar e marcar o registro
+                    } else if (tamanhoPersonagemNovo == tamanho) {// Se personagem atualizado <= personagem
+                                                                  // desatualizado
+                                                                  // Marca o registro antigo como lápide e adiciona o
+                                                                  // novo ao final
+                        registroEncontrado = true;
+                        raf.seek(posLapide);
+                        
+                        raf.writeByte(0); // Marca como lápide
+                        
+                        raf.writeInt(tamanhoPersonagemNovo);
+                        raf.writeInt(id); // Assumindo que você tem um método para obter o ID como int
+
+                        raf.writeUTF(personagemNovo.getId());
+                        raf.writeUTF(personagemNovo.getName());
+                        raf.writeUTF(personagemNovo.getAlternateNames());
+                        raf.writeUTF(personagemNovo.getHouse());
+                        raf.writeUTF(personagemNovo.getAncestry());
+                        raf.writeUTF(personagemNovo.getSpecies());
+                        raf.writeUTF(personagemNovo.getPatronus());
+                        raf.writeUTF(personagemNovo.getHogwartsStaff());
+                        raf.writeUTF(personagemNovo.getHogwartsStudent());
+                        raf.writeUTF(personagemNovo.getActorName());
+                        raf.writeUTF(personagemNovo.getAlive());
+
+                        // DataOfBirth
+                        long timeInMillis = personagemNovo.getDateOfBirth().getTime();
+                        raf.writeLong(timeInMillis);
+
+                        raf.writeUTF(personagemNovo.getEyeColor());
+                        raf.writeUTF(personagemNovo.getGender());
+                        raf.writeUTF(personagemNovo.getHairColour());
+                        raf.writeUTF(personagemNovo.getWizard());
+                        raf.writeInt(personagemNovo.getYearOfBirth());
+
+                        System.out.println("Registro substituído por um novo.");
+                        break;
+                    }
                 }
-                
-                // Pular o registro atual
-                raf.seek(posicaoAtual + tamanho);
-                posicaoAtual = raf.getFilePointer();
+                // Pular para o próximo registro
+                posicaoAtual = posLapide + 1;
+                raf.seek(posicaoAtual);
             }
-            
+
             if (!registroEncontrado) {
                 System.out.println("Registro não encontrado.");
             }
+
+        } catch (EOFException e) {
+            System.err.println("Fim do arquivo alcançado inesperadamente: " + e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
-    
-    
+
 
     // DELETE
     private static void Delete(String inputBinary, int id) {
