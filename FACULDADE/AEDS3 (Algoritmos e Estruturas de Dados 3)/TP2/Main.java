@@ -5,7 +5,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 public class Main {
     static BTree bTree;
@@ -13,7 +15,7 @@ public class Main {
         String inputCSV = "characters.csv";
         String outputBinary = "characters.bin";
     
-        int ordem = 3;
+        int ordem = 8;
         BTree bTree = new BTree(ordem);  // Inicializa a árvore B
         
         int idbin = 0;
@@ -121,6 +123,7 @@ public class Main {
                 dos.writeInt(personagem.getYearOfBirth());  // 4 bytes para o ano de nascimento
                 posicaoAtual += Integer.BYTES;
             }
+            
             System.out.println("Arquivo binário criado com sucesso: " + outputBinary);
         } catch (IOException e) {
             System.out.println("Ocorreu um erro ao processar os arquivos.");
@@ -142,7 +145,7 @@ public class Main {
 
             // Fecha o arquivo
             arquivo.close();
-
+            
             System.out.println("Cabeçalho atualizado com sucesso!");
 
         } catch (IOException e) {
@@ -247,6 +250,7 @@ public class Main {
                         RandomAccessFile arquivo = new RandomAccessFile("characters.bin", "rwd");
                         arquivo.seek(0); // Posiciona o ponteiro no cabeçalho
                         arquivo.writeInt(idbin);// Escreve o int no cabeçalho
+                        bTree.insert(idbin, posicaoAtual);
                         // Fecha o arquivo
                         arquivo.close();
                         System.out.println("Cabeçalho atualizado com sucesso!");
@@ -362,11 +366,14 @@ public class Main {
             }
             input = scanner.nextLine();
         }
+        
+        bTree.saveTreeToFile("btree_indices.txt"); 
         String outputCSV = "new_characters.csv";
         convertBinaryToCSV(outputBinary, outputCSV);
         ordenacaoExterna("characters.bin");
         scanner.close();
-        bTree.search(404);
+        //bTree.loadTreeFromFile("btree_indices.txt");
+        bTree.traversePreOrder();
     }// FIM MAIN
 
     private static void ordenacaoExterna(String inputBinary) {
@@ -1409,112 +1416,291 @@ private static void escreverRegistro(RandomAccessFile raf, Personagem personagem
             }
         }
     }
-    // ARVORE B
+   // Classe da árvore B
+   public static class BTree {
+
     static class BTreeNode {
         int[] keys;
         int t;  // Ordem da árvore B
+        long[] positions;  // Armazena as posições correspondentes no arquivo binário
         BTreeNode[] children;
         int numKeys;
         boolean isLeaf;
-    
+
         public BTreeNode(int t, boolean isLeaf) {
             this.t = t;
             this.isLeaf = isLeaf;
             this.keys = new int[2 * t - 1];
+            this.positions = new long[2 * t - 1];  // Armazena as posições para cada chave
             this.children = new BTreeNode[2 * t];
             this.numKeys = 0;
         }
     }
-    static class BTree {
-        BTreeNode root;
-        int t;  // Ordem mínima da árvore B
-    
-        public BTree(int t) {
-            this.root = null;
-            this.t = t;
-        }
-    
-        public void insert(int key, long position) {
-            // Se a árvore estiver vazia, cria a raiz
-            if (root == null) {
-                root = new BTreeNode(t, true);
-                root.keys[0] = key;
-                root.numKeys = 1;
-            } else {
-                // Se a raiz estiver cheia, precisamos dividir
-                if (root.numKeys == 2 * t - 1) {
-                    BTreeNode newRoot = new BTreeNode(t, false);
-                    newRoot.children[0] = root;
-                    splitChild(newRoot, 0, root);
-                    root = newRoot;
-                }
-                insertNonFull(root, key, position);
+
+    BTreeNode root;
+    int t;  // Ordem mínima da árvore B
+    int nodeIdCounter;  // Contador de IDs únicos para os nós
+
+    public BTree(int t) {
+        this.root = null;
+        this.t = t;
+        this.nodeIdCounter = 0;
+    }
+
+    public void insert(int key, long position) {
+        // Se a árvore estiver vazia, cria a raiz
+        if (root == null) {
+            root = new BTreeNode(t, true);
+            root.keys[0] = key;
+            root.positions[0] = position;  // Armazena a posição
+            root.numKeys = 1;
+        } else {
+            // Se a raiz estiver cheia, precisamos dividir
+            if (root.numKeys == 2 * t - 1) {
+                BTreeNode newRoot = new BTreeNode(t, false);
+                newRoot.children[0] = root;
+                splitChild(newRoot, 0, root);
+                root = newRoot;
             }
-        }
-    
-        private void splitChild(BTreeNode parent, int i, BTreeNode fullChild) {
-            BTreeNode newNode = new BTreeNode(fullChild.t, fullChild.isLeaf);
-            newNode.numKeys = t - 1;
-            
-            for (int j = 0; j < t - 1; j++)
-                newNode.keys[j] = fullChild.keys[j + t];
-            
-            if (!fullChild.isLeaf) {
-                for (int j = 0; j < t; j++)
-                    newNode.children[j] = fullChild.children[j + t];
-            }
-            
-            fullChild.numKeys = t - 1;
-            
-            for (int j = parent.numKeys; j >= i + 1; j--)
-                parent.children[j + 1] = parent.children[j];
-            
-            parent.children[i + 1] = newNode;
-            
-            for (int j = parent.numKeys - 1; j >= i; j--)
-                parent.keys[j + 1] = parent.keys[j];
-            
-            parent.keys[i] = fullChild.keys[t - 1];
-            parent.numKeys++;
-        }
-    
-        private void insertNonFull(BTreeNode node, int key, long position) {
-            int i = node.numKeys - 1;
-            if (node.isLeaf) {
-                while (i >= 0 && key < node.keys[i]) {
-                    node.keys[i + 1] = node.keys[i];
-                    i--;
-                }
-                node.keys[i + 1] = key;
-                node.numKeys++;
-            } else {
-                while (i >= 0 && key < node.keys[i])
-                    i--;
-                if (node.children[i + 1].numKeys == 2 * t - 1) {
-                    splitChild(node, i + 1, node.children[i + 1]);
-                    if (key > node.keys[i + 1])
-                        i++;
-                }
-                insertNonFull(node.children[i + 1], key, position);
-            }
-        }
-    
-        public void search(int key) {
-            searchNode(root, key);
-        }
-    
-        private void searchNode(BTreeNode node, int key) {
-            int i = 0;
-            while (i < node.numKeys && key > node.keys[i])
-                i++;
-            
-            if (i < node.numKeys && key == node.keys[i])
-                System.out.println("Key found at position: " + i);
-            else if (node.isLeaf)
-                System.out.println("Key not found.");
-            else
-                searchNode(node.children[i], key);
+            insertNonFull(root, key, position);
         }
     }
+
+    private void splitChild(BTreeNode parent, int i, BTreeNode fullChild) {
+        BTreeNode newNode = new BTreeNode(fullChild.t, fullChild.isLeaf);
+        newNode.numKeys = t - 1;
+
+        // Copia as últimas (t-1) chaves e posições para o novo nó
+        for (int j = 0; j < t - 1; j++) {
+            newNode.keys[j] = fullChild.keys[j + t];
+            newNode.positions[j] = fullChild.positions[j + t];
+        }
+
+        // Se o nó não for folha, copia os filhos também
+        if (!fullChild.isLeaf) {
+            for (int j = 0; j < t; j++) {
+                newNode.children[j] = fullChild.children[j + t];
+            }
+        }
+
+        fullChild.numKeys = t - 1;
+
+        // Move os filhos do pai para a direita para abrir espaço para o novo nó
+        for (int j = parent.numKeys; j >= i + 1; j--) {
+            parent.children[j + 1] = parent.children[j];
+        }
+
+        // Insere o novo nó como filho
+        parent.children[i + 1] = newNode;
+
+        // Move as chaves e posições do pai para a direita para abrir espaço para a nova chave
+        for (int j = parent.numKeys - 1; j >= i; j--) {
+            parent.keys[j + 1] = parent.keys[j];
+            parent.positions[j + 1] = parent.positions[j];
+        }
+
+        // Insere a chave mediana do filho cheio no pai
+        parent.keys[i] = fullChild.keys[t - 1];
+        parent.positions[i] = fullChild.positions[t - 1];
+        parent.numKeys++;
+    }
+
+    private void insertNonFull(BTreeNode node, int key, long position) {
+        int i = node.numKeys - 1;
+
+        if (node.isLeaf) {
+            // Move as chaves maiores para a direita
+            while (i >= 0 && key < node.keys[i]) {
+                node.keys[i + 1] = node.keys[i];
+                node.positions[i + 1] = node.positions[i];
+                i--;
+            }
+
+            // Insere a nova chave e sua posição
+            node.keys[i + 1] = key;
+            node.positions[i + 1] = position;
+            node.numKeys++;
+        } else {
+            // Encontra o filho que receberá a nova chave
+            while (i >= 0 && key < node.keys[i]) {
+                i--;
+            }
+
+            // Se o filho estiver cheio, divide-o
+            if (node.children[i + 1].numKeys == 2 * t - 1) {
+                splitChild(node, i + 1, node.children[i + 1]);
+
+                if (key > node.keys[i + 1]) {
+                    i++;
+                }
+            }
+
+            insertNonFull(node.children[i + 1], key, position);
+        }
+    }
+
+    public void search(int key) {
+        searchNode(root, key);
+    }
+
+    private void searchNode(BTreeNode node, int key) {
+        int i = 0;
+
+        while (i < node.numKeys && key > node.keys[i]) {
+            i++;
+        }
+
+        if (i < node.numKeys && key == node.keys[i]) {
+            System.out.println("Chave " + key + " encontrada na posição: " + node.positions[i]);
+        } else if (node.isLeaf) {
+            System.out.println("Chave não encontrada.");
+        } else {
+            searchNode(node.children[i], key);
+        }
+    }
+
+    // Salva a árvore B em um arquivo de índice
+    public void saveTreeToFile(String filename) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            if (root != null) {
+                Map<BTreeNode, Integer> nodeIdMap = new HashMap<>();
+                nodeIdCounter = 0;
+                saveNode(root, writer, nodeIdMap,-1);
+            } else {
+                writer.write("Árvore está vazia.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Método recursivo para salvar cada nó no arquivo
+    private void saveNode(BTreeNode node, BufferedWriter writer, Map<BTreeNode, Integer> nodeIdMap, Integer parentId) throws IOException {
+        // Atribui um ID único para o nó atual
+        int nodeId = nodeIdCounter++;
+        nodeIdMap.put(node, nodeId);
+    
+        // Escreve o ID do nó, se ele é folha, e a relação com o pai
+        writer.write("No ID: " + nodeId + ", Filho de: " + (parentId == null ? "Raiz" : "No " + parentId) + ", Folha: " + node.isLeaf);
+    
+        // Se o nó tiver chaves, escreve as chaves e suas posições
+        if (node.numKeys > 0) {
+            writer.write(", Chaves: ");
+            for (int i = 0; i < node.numKeys; i++) {
+                writer.write(node.keys[i] + "(" + node.positions[i] + ") ");  // Chave e posição
+            }
+        }
+    
+        writer.newLine();
+    
+        // Chama recursivamente para salvar os filhos, agora mostrando a relação com o pai
+        if (!node.isLeaf) {  // Somente chama para os filhos se o nó não for folha
+            for (int i = 0; i <= node.numKeys; i++) {
+                saveNode(node.children[i], writer, nodeIdMap, nodeId);  // Passa o ID do nó atual como pai
+            }
+        }
+    }
+    
+
+    // Método para carregar a árvore a partir de um arquivo de índices
+    public void loadTreeFromFile(String filename) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            Map<Integer, BTreeNode> nodeIdMap = new HashMap<>();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("No ID:")) {
+                    String[] parts = line.split(", ");
+                    int nodeId = Integer.parseInt(parts[0].split(": ")[1]);
+                    boolean isLeaf = Boolean.parseBoolean(parts[1].split(": ")[1]);
+
+                    BTreeNode node = new BTreeNode(t, isLeaf);
+                    node.numKeys = 0;
+
+                    String[] keyParts = parts[2].split(": ")[1].split(" ");
+                    for (String keyPart : keyParts) {
+                        if (!keyPart.isEmpty()) {
+                            String[] keyPos = keyPart.split("\\(");
+                            node.keys[node.numKeys] = Integer.parseInt(keyPos[0]);
+                            node.positions[node.numKeys] = Long.parseLong(keyPos[1].replace(")", ""));
+                            node.numKeys++;
+                        }
+                    }
+                    nodeIdMap.put(nodeId, node);
+
+                } else if (line.startsWith("Filhos do no")) {
+                    String[] parts = line.split(": ");
+                    int parentId = Integer.parseInt(parts[0].split(" ")[2]);
+                    BTreeNode parentNode = nodeIdMap.get(parentId);
+
+                    String[] childIds = parts[1].split(" ");
+                    for (int i = 0; i < childIds.length; i++) {
+                        int childId = Integer.parseInt(childIds[i].split(": ")[1]);
+                        parentNode.children[i] = nodeIdMap.get(childId);
+                    }
+                }
+            }
+            // Define a raiz como o nó com ID 0
+            root = nodeIdMap.get(0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    // Método para realizar o caminhamento em ordem (in-order traversal) da árvore B
+public void traverseInOrder() {
+    if (root != null) {
+        traverseInOrder(root);
+    }
+}
+
+// Caminhamento em ordem para um nó específico
+private void traverseInOrder(BTreeNode node) {
+    int i;
+
+    // Percorre as chaves e filhos do nó
+    for (i = 0; i < node.numKeys; i++) {
+        // Se o nó não for folha, percorre o filho à esquerda antes de imprimir a chave
+        if (!node.isLeaf) {
+            traverseInOrder(node.children[i]);
+        }
+
+        // Imprime a chave e sua posição correspondente
+        System.out.print(node.keys[i] + "(" + node.positions[i] + ") ");
+    }
+
+    // Após percorrer todas as chaves, percorre o último filho à direita
+    if (!node.isLeaf) {
+        traverseInOrder(node.children[i]);
+    }
+}
+/// Método para realizar o caminhamento em pré-ordem (pre-order traversal) da árvore B
+public void traversePreOrder() {
+    if (root != null) {
+        // Para a raiz, não há pai, então passamos um valor indicativo, como -1
+        traversePreOrder(root, -1);
+    }
+}
+
+// Caminhamento em pré-ordem para um nó específico
+private void traversePreOrder(BTreeNode node, int parentId) {
+    // Atribui um ID único ao nó atual
+    int nodeId = nodeIdCounter++;
+    
+    // Imprime o nó atual (suas chaves, posições e o ID do nó pai)
+    System.out.print("Nó ID: " + nodeId + ", Filho do nó: " + parentId + " -> ");
+    for (int i = 0; i < node.numKeys; i++) {
+        System.out.print(node.keys[i] + "(" + node.positions[i] + ") ");
+    }
+    System.out.println();
+
+    // Se o nó não for uma folha, percorre recursivamente os filhos
+    if (!node.isLeaf) {
+        for (int i = 0; i <= node.numKeys; i++) {
+            traversePreOrder(node.children[i], nodeId); // Passa o ID do nó atual como o ID do pai
+        }
+    }
+}
+
+}
+    
         
 }
