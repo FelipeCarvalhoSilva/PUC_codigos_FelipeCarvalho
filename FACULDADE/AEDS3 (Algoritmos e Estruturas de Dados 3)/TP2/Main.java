@@ -17,7 +17,7 @@ public class Main {
     
         int ordem = 8;
         BTree bTree = new BTree(ordem);  // Inicializa a árvore B
-        
+        InvertedList invertedList = new InvertedList("casaIndex.txt", "anoNascimentoIndex.txt"); //Inicializa lista invertida
         int idbin = 0;
         long posicaoAtual = 0;  // Posição atual no arquivo binário
     
@@ -67,8 +67,10 @@ public class Main {
                 posicaoAtual += personagem.getAlternateNames().getBytes().length + 2;
     
                 // House
-                dos.writeUTF(personagem.getHouse());
+                String casa= personagem.getHouse();
+                dos.writeUTF(casa);
                 posicaoAtual += personagem.getHouse().getBytes().length + 2;
+              
     
                 // Ancestry
                 dos.writeUTF(personagem.getAncestry());
@@ -120,8 +122,11 @@ public class Main {
                 posicaoAtual += personagem.getWizard().getBytes().length + 2;
     
                 // YearOfBirth
-                dos.writeInt(personagem.getYearOfBirth());  // 4 bytes para o ano de nascimento
+                int anoNasc= personagem.getYearOfBirth();
+                dos.writeInt(anoNasc);  // 4 bytes para o ano de nascimento
+                
                 posicaoAtual += Integer.BYTES;
+                invertedList.insert(casa, anoNasc, posicaoAtual);
             }
             
             System.out.println("Arquivo binário criado com sucesso: " + outputBinary);
@@ -1699,8 +1704,154 @@ private void traversePreOrder(BTreeNode node, int parentId) {
         }
     }
 }
-
 }
-    
+
+
+//LISTA INVERTIDA
+public static class InvertedList {
+    private Map<String, List<Long>> invertedListCasa;  // Lista invertida para "Casa"
+    private Map<Integer, List<Long>> invertedListAnoNascimento;  // Lista invertida para "Ano de Nascimento"
+    private String filePathCasa;
+    private String filePathAno;
+
+    public InvertedList(String filePathCasa, String filePathAno) {
+        this.filePathCasa = "arquivoCasa.txt";
+        this.filePathAno = "arquivoAno.txt";
+        this.invertedListCasa = new HashMap<>();
+        this.invertedListAnoNascimento = new HashMap<>();
+        loadInvertedLists();
+    }
+
+    // Carregar as listas invertidas dos arquivos
+    private void loadInvertedLists() {
+        // Carregar a lista invertida da "Casa"
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePathCasa))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(":");
+                String casa = parts[0];
+                List<Long> positions = parsePositions(parts[1]);
+                invertedListCasa.put(casa, positions);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Carregar a lista invertida do "Ano de Nascimento"
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePathAno))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(":");
+                int anoNascimento = Integer.parseInt(parts[0]);
+                List<Long> positions = parsePositions(parts[1]);
+                invertedListAnoNascimento.put(anoNascimento, positions);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Converte a string de posições em uma lista de Long
+    private List<Long> parsePositions(String positionsString) {
+        String[] posArray = positionsString.trim().replace("[", "").replace("]", "").split(", ");
+        List<Long> positions = new ArrayList<>();
+        for (String pos : posArray) {
+            positions.add(Long.parseLong(pos));
+        }
+        return positions;
+    }
+
+        // Salva a lista invertida de volta nos arquivos
+    private void saveInvertedLists() {
+        // Salvar lista invertida de "Casa"
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePathCasa))) {
+            for (String casa : invertedListCasa.keySet()) {
+                writer.write(casa + ": " + invertedListCasa.get(casa).toString());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Salvar lista invertida de "Ano de Nascimento"
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePathAno))) {
+            for (Integer anoNascimento : invertedListAnoNascimento.keySet()) {
+                writer.write(anoNascimento + ": " + invertedListAnoNascimento.get(anoNascimento).toString());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Insere um novo registro na lista invertida
+    public void insert(String casa, int anoNascimento, long position) {
+        // Inserir na lista invertida de "Casa"
+        invertedListCasa.putIfAbsent(casa, new ArrayList<>());
+        invertedListCasa.get(casa).add(position);
+
+        // Inserir na lista invertida de "Ano de Nascimento"
+        invertedListAnoNascimento.putIfAbsent(anoNascimento, new ArrayList<>());
+        invertedListAnoNascimento.get(anoNascimento).add(position);
+
+        saveInvertedLists();  // Salva as alterações
+    }
+
+    // Remove um registro da lista invertida
+    public void remove(String casa, int anoNascimento, long position) {
+        // Remover da lista invertida de "Casa"
+        if (invertedListCasa.containsKey(casa)) {
+            invertedListCasa.get(casa).remove(position);
+            if (invertedListCasa.get(casa).isEmpty()) {
+                invertedListCasa.remove(casa);
+            }
+        }
+
+        // Remover da lista invertida de "Ano de Nascimento"
+        if (invertedListAnoNascimento.containsKey(anoNascimento)) {
+            invertedListAnoNascimento.get(anoNascimento).remove(position);
+            if (invertedListAnoNascimento.get(anoNascimento).isEmpty()) {
+                invertedListAnoNascimento.remove(anoNascimento);
+            }
+        }
+
+        saveInvertedLists();  // Salva as alterações
+    }
+
+    // Busca por uma casa
+    public List<Long> searchByCasa(String casa) {
+        return invertedListCasa.getOrDefault(casa, new ArrayList<>());
+    }
+
+    // Busca por ano de nascimento
+    public List<Long> searchByAnoNascimento(int anoNascimento) {
+        return invertedListAnoNascimento.getOrDefault(anoNascimento, new ArrayList<>());
+    }
+
+    // Busca combinada (interseção)
+    public List<Long> search(String casa, int anoNascimento) {
+        List<Long> resultadoCasa = searchByCasa(casa);
+        List<Long> resultadoAno = searchByAnoNascimento(anoNascimento);
+        return intersectLists(resultadoCasa, resultadoAno);
+    }
+
+    // Interseção de duas listas
+    private List<Long> intersectLists(List<Long> lista1, List<Long> lista2) {
+        List<Long> intersecao = new ArrayList<>();
+        int i = 0, j = 0;
+        while (i < lista1.size() && j < lista2.size()) {
+            if (lista1.get(i).equals(lista2.get(j))) {
+                intersecao.add(lista1.get(i));
+                i++;
+                j++;
+            } else if (lista1.get(i) < lista2.get(j)) {
+                i++;
+            } else {
+                j++;
+            }
+        }
+        return intersecao;
+    }
+}
         
 }
