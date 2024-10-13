@@ -160,7 +160,7 @@ public class Main {
 
         // COMANDOS CRUD
         Scanner scanner = new Scanner(System.in);
-        System.out.println("COMANDOS:\n1- Create\n2- Read\n3- Update\n4- Delete\n5- Ordenar\n FIM para terminar o programa.\n");
+        System.out.println("COMANDOS:\n1- Create\n2- Read\n3- Update\n4- Delete\n5- Ordenar\n6- Load\nFIM para terminar o programa.\n");
         String input = scanner.nextLine();
 
         while (!input.equals("FIM")) {
@@ -366,19 +366,36 @@ public class Main {
                 ordenacaoExterna("characters.bin");
                 System.out.println("Arquivo ordenado ordered_characters.bin criado.");
                 break;
+
+                case "Save":
+                bTree.saveTreeToFile("btree_indices.txt"); 
+                System.out.println("Salvando árvore no arquivo: \"btree_indices.txt\"");
+                break;
+
+                case "Load":
+                bTree.loadTreeFromFile("btree_indices.txt");
+                System.out.println("Carregando árvore do arquivo: \"btree_indices.txt\"");
+                bTree.traversePreOrder();
+                break;
+
+                case "Read from tree":
+                int xave = scanner.nextInt();
+                bTree.search(xave);
+                break;
+
                 default:
                     break;
             }
             input = scanner.nextLine();
         }
         
-        bTree.saveTreeToFile("btree_indices.txt"); 
+       
         String outputCSV = "new_characters.csv";
         convertBinaryToCSV(outputBinary, outputCSV);
-        ordenacaoExterna("characters.bin");
         scanner.close();
-        //bTree.loadTreeFromFile("btree_indices.txt");
-        bTree.traversePreOrder();
+        
+        
+       
     }// FIM MAIN
 
     private static void ordenacaoExterna(String inputBinary) {
@@ -1610,46 +1627,67 @@ private static void escreverRegistro(RandomAccessFile raf, Personagem personagem
     // Método para carregar a árvore a partir de um arquivo de índices
     public void loadTreeFromFile(String filename) {
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
-            Map<Integer, BTreeNode> nodeIdMap = new HashMap<>();
+            Map<Integer, BTreeNode> nodeIdMap = new HashMap<>();  // Mapa para armazenar os nós por ID
             String line;
+    
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith("No ID:")) {
                     String[] parts = line.split(", ");
+                    
+                    // Extrai o ID do nó
                     int nodeId = Integer.parseInt(parts[0].split(": ")[1]);
-                    boolean isLeaf = Boolean.parseBoolean(parts[1].split(": ")[1]);
-
+                    
+                    // Extrai o ID do pai
+                    String parentInfo = parts[1].split(": ")[1];
+                    int parentId = parentInfo.equals("Raiz") ? -1 : Integer.parseInt(parentInfo.replace("No ", ""));
+                    
+                    // Verifica se o nó é folha
+                    boolean isLeaf = Boolean.parseBoolean(parts[2].split(": ")[1]);
+    
+                    // Cria o nó e armazena no mapa
                     BTreeNode node = new BTreeNode(t, isLeaf);
-                    node.numKeys = 0;
-
-                    String[] keyParts = parts[2].split(": ")[1].split(" ");
-                    for (String keyPart : keyParts) {
-                        if (!keyPart.isEmpty()) {
-                            String[] keyPos = keyPart.split("\\(");
-                            node.keys[node.numKeys] = Integer.parseInt(keyPos[0]);
-                            node.positions[node.numKeys] = Long.parseLong(keyPos[1].replace(")", ""));
-                            node.numKeys++;
+                    nodeIdMap.put(nodeId, node);
+    
+                    // Se o nó tem chaves, processa as chaves e suas posições
+                    if (parts.length > 3 && parts[3].startsWith("Chaves:")) {
+                        String[] keyParts = parts[3].split(": ")[1].split(" ");
+                        for (String keyPart : keyParts) {
+                            if (!keyPart.isEmpty()) {
+                                String[] keyPos = keyPart.split("\\(");
+                                node.keys[node.numKeys] = Integer.parseInt(keyPos[0]);
+                                node.positions[node.numKeys] = Long.parseLong(keyPos[1].replace(")", ""));
+                                node.numKeys++;
+                            }
                         }
                     }
-                    nodeIdMap.put(nodeId, node);
-
-                } else if (line.startsWith("Filhos do no")) {
-                    String[] parts = line.split(": ");
-                    int parentId = Integer.parseInt(parts[0].split(" ")[2]);
-                    BTreeNode parentNode = nodeIdMap.get(parentId);
-
-                    String[] childIds = parts[1].split(" ");
-                    for (int i = 0; i < childIds.length; i++) {
-                        int childId = Integer.parseInt(childIds[i].split(": ")[1]);
-                        parentNode.children[i] = nodeIdMap.get(childId);
+    
+                    // Se o nó tem um pai, o conecta ao pai
+                    if (parentId != -1) {
+                        BTreeNode parentNode = nodeIdMap.get(parentId);
+                        for (int i = 0; i <= parentNode.numKeys; i++) {
+                            if (parentNode.children[i] == null) {
+                                parentNode.children[i] = node;
+                                break;
+                            }
+                        }
+                    }
+    
+                    // Se o nó é a raiz, define-o como tal
+                    if (parentId == -1) {
+                        root = node;
                     }
                 }
             }
-            // Define a raiz como o nó com ID 0
-            root = nodeIdMap.get(0);
+    
+            System.out.println("Árvore carregada com sucesso!");
+    
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+    
+    
+    
     // Método para realizar o caminhamento em ordem (in-order traversal) da árvore B
 public void traverseInOrder() {
     if (root != null) {
