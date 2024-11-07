@@ -9,48 +9,104 @@ public class GraphPlotter extends JFrame {
     private JTextField pointsField;
     private JPanel graphPanel;
     private ArrayList<Point> points = new ArrayList<>();
+    private ArrayList<String> evaluatedPoints = new ArrayList<>();
 
     public GraphPlotter() {
+        // Configurações principais da janela
         setTitle("Desenhador de Gráfico");
-        setSize(800, 600);
+        setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Painel para entrada da equação e pontos
+        // Painel para entrada de dados (equação e pontos)
         JPanel inputPanel = new JPanel();
         equationField = new JTextField(20);
         pointsField = new JTextField(20);
         JButton drawButton = new JButton("Desenhar");
+        JButton integralButton = new JButton("Calcular Integral");
 
+        // Adiciona campos de entrada e botões no painel superior
         inputPanel.add(new JLabel("Equação (ex: x^2 + 3*x - 2): f(x) = "));
         inputPanel.add(equationField);
         inputPanel.add(new JLabel("Pontos (ex: -2,1; 3,4):"));
         inputPanel.add(pointsField);
         inputPanel.add(drawButton);
+        inputPanel.add(integralButton);
         add(inputPanel, BorderLayout.NORTH);
 
-        // Painel para o gráfico
+        // Painel para exibição do gráfico
         graphPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                drawGraph(g);
-                drawPoints(g);
+                drawGraph(g);         // Desenha o gráfico da função
+                drawPoints(g);        // Desenha os pontos fornecidos pelo usuário
+                drawEvaluatedPoints(g); // Exibe os pontos avaliados (resultados calculados)
             }
         };
         add(graphPanel, BorderLayout.CENTER);
 
-        // Ação do botão para desenhar
+        // Define a ação do botão de desenhar
         drawButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Processa os pontos inseridos
                 processPoints(pointsField.getText());
-                graphPanel.repaint();
+                evaluatePoints(); // Calcula o valor de f(x) para cada ponto
+                graphPanel.repaint(); // Re-renderiza o painel para exibir o gráfico e os pontos
+            }
+        });
+
+        // Define a ação do botão de integral
+        integralButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String integralResult = calculateIntegral(equationField.getText());
+                JOptionPane.showMessageDialog(GraphPlotter.this, "Integral: " + integralResult);
             }
         });
     }
 
+    /**
+     * Calcula a integral da equação fornecida (simplificada para polinômios).
+     * @param equation a equação a ser integrada.
+     * @return uma string com a integral da função.
+     */
+    private String calculateIntegral(String equation) {
+        // Este método faz uma integração simbólica simples para polinômios
+        if (equation.isEmpty()) return "Equação não fornecida.";
+
+        try {
+            String[] terms = equation.split("\\+|\\-");
+            StringBuilder integral = new StringBuilder();
+
+            for (String term : terms) {
+                term = term.trim();
+                if (term.contains("x^")) {
+                    String[] parts = term.split("x\\^");
+                    double coef = parts[0].isEmpty() ? 1 : Double.parseDouble(parts[0]);
+                    int exp = Integer.parseInt(parts[1]);
+                    integral.append(String.format("%.2fx^%d", coef / (exp + 1), exp + 1));
+                } else if (term.contains("x")) {
+                    double coef = term.equals("x") ? 1 : Double.parseDouble(term.replace("x", ""));
+                    integral.append(String.format("%.2fx^2", coef / 2));
+                } else {
+                    double coef = Double.parseDouble(term);
+                    integral.append(String.format("%.2fx", coef));
+                }
+                integral.append(" + ");
+            }
+
+            return integral.toString().replaceAll("\\+ $", "");
+        } catch (Exception e) {
+            return "Erro ao calcular a integral.";
+        }
+    }
+
+    /**
+     * Desenha o gráfico da função com base na equação fornecida.
+     * @param g o contexto gráfico usado para desenhar no painel.
+     */
     private void drawGraph(Graphics g) {
         String equation = equationField.getText();
         if (equation.isEmpty()) return;
@@ -63,15 +119,15 @@ public class GraphPlotter extends JFrame {
         int originX = width / 2;
         int originY = height / 2;
 
-        // Desenha os eixos no intervalo de -6 a 6
-        g2.drawLine(0, originY, width, originY);
-        g2.drawLine(originX, 0, originX, height);
+        // Desenha os eixos coordenados no centro do painel
+        g2.drawLine(0, originY, width, originY); // eixo X
+        g2.drawLine(originX, 0, originX, height); // eixo Y
 
-        // Escala de -6 a 6
+        // Define a escala para ajustar o gráfico ao painel
         double scaleX = width / 12.0;
         double scaleY = height / 12.0;
 
-        // Desenha o gráfico da função
+        // Desenha a curva da função no intervalo de -6 a 6
         for (double x = -6; x <= 6; x += 0.01) {
             double y = evaluateEquation(equation, x);
             int screenX = (int) (originX + x * scaleX);
@@ -83,6 +139,10 @@ public class GraphPlotter extends JFrame {
         }
     }
 
+    /**
+     * Desenha os pontos fornecidos pelo usuário no gráfico.
+     * @param g o contexto gráfico usado para desenhar no painel.
+     */
     private void drawPoints(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setColor(Color.RED);
@@ -97,11 +157,32 @@ public class GraphPlotter extends JFrame {
             int screenX = (int) (originX + point.x * scaleX);
             int screenY = (int) (originY - point.y * scaleY);
 
-            // Marca o ponto na tela
+            // Marca o ponto com um pequeno círculo
             g2.fillOval(screenX - 4, screenY - 4, 8, 8);
         }
     }
 
+    /**
+     * Exibe os valores calculados de f(x) para os pontos fornecidos.
+     * @param g o contexto gráfico usado para desenhar no painel.
+     */
+    private void drawEvaluatedPoints(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(Color.BLACK);
+
+        int startY = 20;
+        for (String eval : evaluatedPoints) {
+            g2.drawString(eval, 10, startY); // Exibe cada resultado na tela
+            startY += 15;
+        }
+    }
+
+    /**
+     * Avalia a equação fornecida para um valor específico de x.
+     * @param equation a equação da função.
+     * @param x o valor de x.
+     * @return o valor de f(x).
+     */
     private double evaluateEquation(String equation, double x) {
         try {
             equation = equation.replace("x", "(" + x + ")");
@@ -111,12 +192,17 @@ public class GraphPlotter extends JFrame {
         }
     }
 
+    /**
+     * Processa os pontos fornecidos pelo usuário, convertendo-os em objetos Point.
+     * @param pointsText texto contendo os pontos no formato "x,y; x,y; ...".
+     */
     private void processPoints(String pointsText) {
         points.clear();
+        evaluatedPoints.clear();
         String[] pairs = pointsText.split(";");
         for (String pair : pairs) {
             String[] coords = pair.trim().split(",");
-            if (coords.length == 2 && points.size() < 5) {
+            if (coords.length == 2 && points.size() < 5) { // Limite de 5 pontos para simplificação
                 try {
                     int x = (int) Double.parseDouble(coords[0].trim());
                     int y = (int) Double.parseDouble(coords[1].trim());
@@ -127,8 +213,24 @@ public class GraphPlotter extends JFrame {
             }
         }
     }
-    
 
+    /**
+     * Calcula o valor de f(x) para cada ponto fornecido e armazena o resultado.
+     */
+    private void evaluatePoints() {
+        if (!points.isEmpty()) {
+            for (Point point : points) {
+                double result = evaluateEquation(equationField.getText(), point.x);
+                evaluatedPoints.add("a = " + point.x + " f(" + point.x + ") = " + result);
+            }
+        }
+    }
+
+    /**
+     * Avaliador de expressões matemáticas simples.
+     * @param str expressão matemática a ser avaliada.
+     * @return o resultado da expressão.
+     */
     public double eval(final String str) {
         return new Object() {
             int pos = -1, ch;
@@ -196,7 +298,7 @@ public class GraphPlotter extends JFrame {
                     throw new RuntimeException("Unexpected: " + (char) ch);
                 }
 
-                if (eat('^')) x = Math.pow(x, parseFactor()); // potência
+                if (eat('^')) x = Math.pow(x, parseFactor()); // exponenciação
 
                 return x;
             }
@@ -205,8 +307,7 @@ public class GraphPlotter extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            GraphPlotter plotter = new GraphPlotter();
-            plotter.setVisible(true);
+            new GraphPlotter().setVisible(true);
         });
     }
 }
